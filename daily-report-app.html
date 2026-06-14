@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -256,7 +256,7 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
   <header class="topbar">
     <div>
       <h1>每日汇报填写汇总</h1>
-      <p>四位伙伴分别填写，一键生成三个汇报板块</p>
+      <p>四位伙伴分别填写，一键生成三个汇报板块　<span id="saveIndicator" style="color:#0b7f74;font-size:12px;font-weight:normal;display:none;">✓ 已自动保存</span></p>
     </div>
     <div class="actions">
       <button id="sampleBtn" type="button" class="secondary">填入示例</button>
@@ -346,6 +346,86 @@ const PERSON_FIELDS = [
 const DEFAULT_NAMES = ["伙伴1","伙伴2","伙伴3","伙伴4"];
 const personData = DEFAULT_NAMES.map(() => ({}));
 
+// ── localStorage helpers ────────────────────────────────
+const STORAGE_KEY = 'dailyReportData_v1';
+function saveToStorage() {
+  const data = {
+    summary: {
+      reportDate: $('#reportDate').value,
+      monthLabel: $('#monthLabel').value,
+      todayPresale: $('#todayPresale').value,
+      todayUnderwrite: $('#todayUnderwrite').value,
+      monthPresale: $('#monthPresale').value,
+      monthUnderwrite: $('#monthUnderwrite').value,
+      monthTarget: $('#monthTarget').value,
+      tomorrowEstimate: $('#tomorrowEstimate').value,
+      activityPeople: $('#activityPeople').value,
+      channelCount: $('#channelCount').value,
+      specialTarget: $('#specialTarget').value,
+      specialMonth: $('#specialMonth').value,
+      specialToday: $('#specialToday').value,
+      onlineMonth: $('#onlineMonth').value,
+      offlineTrainingMonth: $('#offlineTrainingMonth').value,
+      offlineActivityMonth: $('#offlineActivityMonth').value,
+      monthActiveFans: $('#monthActiveFans').value,
+      monthHighPFans: $('#monthHighPFans').value,
+    },
+    people: personData.map((p, i) => {
+      const result = { name: p.name };
+      for (const f of PERSON_FIELDS) {
+        result[f.id] = p[f.id];
+      }
+      return result;
+    }),
+    result: $('#result').value,
+    savedAt: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Show save indicator
+  const ind = document.getElementById('saveIndicator');
+  if (ind) {
+    ind.style.display = 'inline';
+    clearTimeout(ind._timer);
+    ind._timer = setTimeout(() => { ind.style.display = 'none'; }, 1500);
+  }
+}
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    // Load summary
+    if (data.summary) {
+      Object.entries(data.summary).forEach(([k, v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v || '';
+      });
+    }
+    // Load people
+    if (data.people && data.people.length === 4) {
+      data.people.forEach((p, i) => {
+        personData[i].name = p.name || DEFAULT_NAMES[i];
+        for (const f of PERSON_FIELDS) {
+          personData[i][f.id] = p[f.id] || '';
+        }
+      });
+    }
+    // Load result
+    if (data.result) {
+      $('#result').value = data.result;
+    }
+    return true;
+  } catch (e) {
+    console.error('Load failed:', e);
+    return false;
+  }
+}
+function clearStorage() {
+  localStorage.removeItem(STORAGE_KEY);
+  const ind = document.getElementById('saveIndicator');
+  if (ind) ind.style.display = 'none';
+}
+
 // ── build person cards ──────────────────────────────────
 function buildCards() {
   const grid = document.getElementById("personGrid");
@@ -356,7 +436,7 @@ function buildCards() {
     const header = E("div", { className: "person-card-header" });
     const nameInput = E("input", {
       type: "text", className: "name-input", value: DEFAULT_NAMES[i],
-      onInput: (e) => { personData[i].name = e.target.value; },
+      onInput: (e) => { personData[i].name = e.target.value; saveToStorage(); },
     });
     personData[i].name = DEFAULT_NAMES[i];
     const toggleBtn = E("button", {
@@ -381,7 +461,10 @@ function buildCards() {
         input = E("input", { type: f.type, id, step: f.type === "number" ? "1" : undefined, value: "" });
       }
       personData[i][f.id] = "";
-      input.addEventListener("input", (e) => { personData[i][f.id] = e.target.value; });
+      input.addEventListener("input", (e) => {
+        personData[i][f.id] = e.target.value;
+        saveToStorage();
+      });
       label.append(f.label, input);
       body.append(label);
     }
@@ -389,6 +472,15 @@ function buildCards() {
     card.append(header, body);
     grid.append(card);
   }
+}
+
+// ── attach auto-save to summary fields ─────────────────
+function attachSummaryAutoSave() {
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
+  summaryIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', saveToStorage);
+  });
 }
 
 // ── collect data ────────────────────────────────────────
@@ -638,6 +730,15 @@ function fillSample() {
 
 // ── clear ───────────────────────────────────────────────
 function clearAll() {
+  // Clear localStorage
+  clearStorage();
+  // Clear summary fields
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
+  summaryIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Clear person cards
   for (let i = 0; i < 4; i++) {
     const card = document.querySelectorAll(".person-card")[i];
     if (!card) continue;
@@ -651,6 +752,8 @@ function clearAll() {
     }
   }
   $("#result").value = "";
+  // Save cleared state
+  saveToStorage();
 }
 
 // ── utilities ───────────────────────────────────────────
@@ -688,10 +791,25 @@ function collapseAll() {
 // ── init ────────────────────────────────────────────────
 function init() {
   buildCards();
-  $("#generateBtn").addEventListener("click", generate);
+  // Try to load saved data
+  const hasData = loadFromStorage();
+  // If loaded data, populate the form fields
+  if (hasData) {
+    for (let i = 0; i < 4; i++) {
+      const card = document.querySelectorAll(".person-card")[i];
+      if (!card) continue;
+      card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
+      for (const f of PERSON_FIELDS) {
+        const el = card.querySelector(`#p${i}_${f.id}`);
+        if (el) el.value = personData[i][f.id] || '';
+      }
+    }
+  }
+  attachSummaryAutoSave();
+  $("#generateBtn").addEventListener("click", () => { generate(); saveToStorage(); });
   $("#copyBtn").addEventListener("click", copyResult);
   $("#downloadBtn").addEventListener("click", downloadResult);
-  $("#sampleBtn").addEventListener("click", fillSample);
+  $("#sampleBtn").addEventListener("click", () => { fillSample(); saveToStorage(); });
   $("#clearBtn").addEventListener("click", clearAll);
   $("#collapseAll").addEventListener("click", collapseAll);
 }
