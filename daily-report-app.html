@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>姣忔棩姹囨姤濉啓姹囨€诲伐鍏?/title>
+  <title>每日汇报填写汇总工具</title>
   <style>
 :root {
   --bg: #f4f5f8;
@@ -380,68 +380,68 @@ button.paste-btn:hover { background: #fff8e7; }
 
   <header class="topbar">
     <div>
-      <h1>姣忔棩姹囨姤濉啓姹囨€?/h1>
-      <p>鍥涗綅浼欎即鍒嗗埆濉啓锛屼竴閿敓鎴愪笁涓眹鎶ユ澘鍧?/p>
+      <h1>每日汇报填写汇总</h1>
+      <p>四位伙伴分别填写，一键生成三个汇报板块</p>
     </div>
     <div class="actions">
-      <button id="pickFileBtn" type="button" class="secondary" title="杩炴帴鏈湴JSON鏂囦欢瀹炵幇璺ㄧ數鑴戝悓姝ワ紙寤鸿鏀剧綉鐩樼洰褰曪級">馃搧 璁剧疆鍚屾鏂囦欢</button>
-      <button id="exportBtn" type="button" class="secondary" title="涓嬭浇瀹屾暣鏁版嵁澶囦唤">猬?瀵煎嚭澶囦唤</button>
-      <button id="importBtn" type="button" class="secondary" title="浠庡浠芥枃浠舵仮澶嶆暟鎹?>猬?瀵煎叆鎭㈠</button>
+      <button id="pickFileBtn" type="button" class="secondary" title="连接本地JSON文件实现跨电脑同步（建议放网盘目录）">📁 设置同步文件</button>
+      <button id="exportBtn" type="button" class="secondary" title="下载完整数据备份">⬇ 导出备份</button>
+      <button id="importBtn" type="button" class="secondary" title="从备份文件恢复数据">⬆ 导入恢复</button>
       <input type="file" id="importFile" accept=".json" />
-      <button id="sampleBtn" type="button" class="secondary">濉叆绀轰緥</button>
-      <button id="clearBtn" type="button" class="warn-btn">娓呯┖</button>
-      <button id="generateBtn" type="button">鐢熸垚姹囨姤</button>
+      <button id="sampleBtn" type="button" class="secondary">填入示例</button>
+      <button id="clearBtn" type="button" class="warn-btn">清空</button>
+      <button id="generateBtn" type="button">生成汇报</button>
     </div>
   </header>
 
   <!-- status bar -->
   <div class="status-bar" id="statusBar">
     <span class="dot orange" id="statusDot"></span>
-    <span id="statusText">鏈繛鎺ュ悓姝ユ枃浠?鈥?鏁版嵁浠呬繚瀛樺湪褰撳墠娴忚鍣?/span>
+    <span id="statusText">未连接同步文件 — 数据仅保存在当前浏览器</span>
     <span class="save-time" id="saveTime"></span>
   </div>
 
   <details class="summary-box" open>
-    <summary>鍥㈤槦姹囨€绘暟鎹?/summary>
+    <summary>团队汇总数据</summary>
     <div class="summary-grid">
-      <label>姹囨姤鏃ユ湡<input id="reportDate" type="text" /></label>
-      <label>鏈湀鍚嶇О<input id="monthLabel" type="text" /></label>
-      <label>浠婃棩棰勬敹涓嘝<input id="todayPresale" type="number" step="0.1" /></label>
-      <label>浠婃棩鎵夸繚涓嘝<input id="todayUnderwrite" type="number" step="0.1" /></label>
-      <label>鏈湀绱棰勬敹涓嘝<input id="monthPresale" type="number" step="0.1" /></label>
-      <label>鏈湀绱鎵夸繚涓嘝<input id="monthUnderwrite" type="number" step="0.1" /></label>
-      <label>鏈堢洰鏍囦竾P<input id="monthTarget" type="number" step="0.1" /></label>
-      <label>鏄庢棩棰勪及涓嘝<input id="tomorrowEstimate" type="number" step="0.1" /></label>
-      <label>娲诲姩浜哄姏 鐩爣/杈炬垚<input id="activityPeople" type="text" /></label>
-      <label>鏈夋晥娓犻亾 鐩爣/杈炬垚<input id="channelCount" type="text" /></label>
-      <label>娉版湁閼剰鏈堢洰鏍?input id="specialTarget" type="number" /></label>
-      <label>娉版湁閼剰鏈湀涓氱哗P<input id="specialMonth" type="number" /></label>
-      <label>娉版湁閼剰浠婃棩涓氱哗P<input id="specialToday" type="number" /></label>
-      <label>鏈湀绱绾夸笂鍝佸绡囨暟<input id="onlineMonth" type="number" /></label>
-      <label>鏈湀绱绾夸笅鍩硅鍦烘暟<input id="offlineTrainingMonth" type="number" /></label>
-      <label>鏈湀绱绾夸笅娲诲姩鍦烘暟<input id="offlineActivityMonth" type="number" /></label>
-      <label>鏈湀绱娲荤矇浜烘暟<input id="monthActiveFans" type="number" /></label>
-      <label>鏈湀绱楂楶绮変汉鏁?input id="monthHighPFans" type="number" /></label>
+      <label>汇报日期<input id="reportDate" type="text" /></label>
+      <label>本月名称<input id="monthLabel" type="text" /></label>
+      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" /></label>
+      <label>今日承保万P<input id="todayUnderwrite" type="number" step="0.1" /></label>
+      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" /></label>
+      <label>本月累计承保万P<input id="monthUnderwrite" type="number" step="0.1" /></label>
+      <label>月目标万P<input id="monthTarget" type="number" step="0.1" /></label>
+      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" /></label>
+      <label>活动人力 目标/达成<input id="activityPeople" type="text" /></label>
+      <label>有效渠道 目标/达成<input id="channelCount" type="text" /></label>
+      <label>泰有鑫意月目标<input id="specialTarget" type="number" /></label>
+      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" /></label>
+      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" /></label>
+      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" /></label>
+      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" /></label>
+      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" /></label>
+      <label>本月累计活粉人数<input id="monthActiveFans" type="number" /></label>
+      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" /></label>
     </div>
   </details>
 
   <section class="person-section">
     <div class="person-section-header">
-      <h2>鍥涗汉濉啓鍖?/h2>
-      <button id="collapseAll" type="button" class="secondary small">鍏ㄩ儴鎶樺彔</button>
+      <h2>四人填写区</h2>
+      <button id="collapseAll" type="button" class="secondary small">全部折叠</button>
     </div>
     <div class="person-grid" id="personGrid"></div>
   </section>
 
   <section class="result-section">
     <div class="result-header">
-      <h2>鐢熸垚缁撴灉</h2>
+      <h2>生成结果</h2>
       <div class="actions">
-        <button id="copyBtn" type="button" class="secondary">澶嶅埗鍏ㄦ枃</button>
-        <button id="downloadBtn" type="button" class="secondary">涓嬭浇鏂囨湰</button>
+        <button id="copyBtn" type="button" class="secondary">复制全文</button>
+        <button id="downloadBtn" type="button" class="secondary">下载文本</button>
       </div>
     </div>
-    <textarea id="result" spellcheck="false" placeholder="鐐瑰嚮銆岀敓鎴愭眹鎶ャ€嶅悗缁撴灉鍑虹幇鍦ㄨ繖閲?></textarea>
+    <textarea id="result" spellcheck="false" placeholder="点击「生成汇报」后结果出现在这里"></textarea>
   </section>
 
   <div class="toast" id="toast"></div>
@@ -449,7 +449,7 @@ button.paste-btn:hover { background: #fff8e7; }
 </main>
 
 <script>
-// 鈹€鈹€ helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── helpers ──────────────────────────────────────────────
 const $ = (s, p) => (p || document).querySelector(s);
 const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
 const E = (tag, attrs = {}, children = []) => {
@@ -477,35 +477,35 @@ function showToast(msg, type) {
 function showSaveFlash() {
   const el = document.createElement('div');
   el.className = 'save-flash';
-  el.textContent = '馃捑 宸茶嚜鍔ㄤ繚瀛?;
+  el.textContent = '💾 已自动保存';
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2100);
 }
 
-// 鈹€鈹€ form field definitions per person 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── form field definitions per person ────────────────────
 const PERSON_FIELDS = [
-  { id: "work",         label: "浠婃棩宸ヤ綔鍐呭锛堟瘡琛屼竴鏉★級",   type: "textarea",  span: "full-span" },
-  { id: "channelWork",  label: "娓犻亾缁忚惀",   type: "text" },
-  { id: "activity",     label: "娲诲姩璧嬭兘",   type: "text" },
-  { id: "training",     label: "鍩硅杈呭",   type: "text" },
-  { id: "fansInterview", label: "鏈夋晥闈㈣皥浜烘暟",    type: "number" },
-  { id: "fansPlan",     label: "璁″垝涔﹂€掗€佷唤鏁?,  type: "number" },
-  { id: "fansNew",      label: "鏂板绮変笣浜烘暟",    type: "number" },
-  { id: "fansActive",   label: "鏂板娲荤矇浜烘暟",    type: "number" },
-  { id: "fansHighP",    label: "鏂板楂楶绮変汉鏁?,   type: "number" },
-  { id: "specialOnline",  label: "娉版湁閼剰浠婃棩绾夸笂鍝佸绡囨暟", type: "number" },
-  { id: "specialTrain",   label: "娉版湁閼剰浠婃棩绾夸笅鍩硅鍦烘暟", type: "number" },
-  { id: "specialAct",     label: "娉版湁閼剰浠婃棩绾夸笅娲诲姩鍦烘暟", type: "number" },
-  { id: "excellent",    label: "琛ㄧ幇浜偣锛堝唴瀹瑰嵆鍙紝鑷姩閰嶄汉鍚嶏級", type: "text", span: "full-span" },
-  { id: "improve",      label: "闇€鏀硅繘浜嬮」锛堝唴瀹瑰嵆鍙紝鑷姩閰嶄汉鍚嶏級", type: "text", span: "full-span" },
-  { id: "plan",         label: "鏄庢棩宸ヤ綔璁″垝锛堟瘡琛屼竴鏉★級", type: "textarea", span: "full-span" },
-  { id: "premium",      label: "鏄庢棩淇濊垂棰勪及锛堟瘡琛屼竴鏉★級", type: "textarea", span: "full-span" },
+  { id: "work",         label: "今日工作内容（每行一条）",   type: "textarea",  span: "full-span" },
+  { id: "channelWork",  label: "渠道经营",   type: "text" },
+  { id: "activity",     label: "活动赋能",   type: "text" },
+  { id: "training",     label: "培训辅导",   type: "text" },
+  { id: "fansInterview", label: "有效面谈人数",    type: "number" },
+  { id: "fansPlan",     label: "计划书递送份数",  type: "number" },
+  { id: "fansNew",      label: "新增粉丝人数",    type: "number" },
+  { id: "fansActive",   label: "新增活粉人数",    type: "number" },
+  { id: "fansHighP",    label: "新增高P粉人数",   type: "number" },
+  { id: "specialOnline",  label: "泰有鑫意今日线上品宣篇数", type: "number" },
+  { id: "specialTrain",   label: "泰有鑫意今日线下培训场数", type: "number" },
+  { id: "specialAct",     label: "泰有鑫意今日线下活动场数", type: "number" },
+  { id: "excellent",    label: "表现亮点（内容即可，自动配人名）", type: "text", span: "full-span" },
+  { id: "improve",      label: "需改进事项（内容即可，自动配人名）", type: "text", span: "full-span" },
+  { id: "plan",         label: "明日工作计划（每行一条）", type: "textarea", span: "full-span" },
+  { id: "premium",      label: "明日保费预估（每行一条）", type: "textarea", span: "full-span" },
 ];
 
-const DEFAULT_NAMES = ["浼欎即1","浼欎即2","浼欎即3","浼欎即4"];
+const DEFAULT_NAMES = ["伙伴1","伙伴2","伙伴3","伙伴4"];
 const personData = DEFAULT_NAMES.map(() => ({}));
 
-// 鈹€鈹€ File System Access API 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── File System Access API ───────────────────────────────
 let fileHandle = null;
 let hasFileAPI = false;
 let lastSaveTime = null;
@@ -514,11 +514,11 @@ let saveFlashTimer = null;
 function checkFileAPI() {
   hasFileAPI = typeof window.showSaveFilePicker === 'function';
   if (!hasFileAPI) {
-    $('#statusText').textContent = '鈿?褰撳墠娴忚鍣ㄤ笉鏀寔鏂囦欢鍚屾锛堣鐢–hrome/Edge鎵撳紑浠ュ疄鐜拌法鐢佃剳鑷姩淇濆瓨锛?;
+    $('#statusText').textContent = '⚠ 当前浏览器不支持文件同步（请用Chrome/Edge打开以实现跨电脑自动保存）';
     $('#statusDot').className = 'dot orange';
     // Still show localStorage as active
     if (localStorage.getItem(STORAGE_KEY)) {
-      $('#statusText').textContent = '馃捇 鏁版嵁宸蹭繚瀛樺湪娴忚鍣ㄦ湰鍦帮紙鎹㈢數鑴?娴忚鍣ㄤ細涓㈠け锛岃鐐广€屽鍑哄浠姐€嶏級';
+      $('#statusText').textContent = '💻 数据已保存在浏览器本地（换电脑/浏览器会丢失，请点「导出备份」）';
     }
   }
 }
@@ -578,7 +578,7 @@ async function verifyHandlePermission(handle) {
 
 async function pickSaveFile() {
   if (!hasFileAPI) {
-    showToast('褰撳墠娴忚鍣ㄤ笉鏀寔锛岃浣跨敤Chrome/Edge鎵撳紑', 'error');
+    showToast('当前浏览器不支持，请使用Chrome/Edge打开', 'error');
     return;
   }
   try {
@@ -591,11 +591,11 @@ async function pickSaveFile() {
     // Write current data to new file
     await writeToFileNow(handle);
     updateStatusBar();
-    showToast('鉁?宸茶繛鎺? ' + handle.name + ' 鈥?涔嬪悗鎵€鏈変慨鏀归兘浼氳嚜鍔ㄤ繚瀛樺埌姝ゆ枃浠?, 'success');
+    showToast('✓ 已连接: ' + handle.name + ' — 之后所有修改都会自动保存到此文件', 'success');
   } catch (e) {
     if (e.name !== 'AbortError') {
       console.error('pickSaveFile:', e);
-      showToast('閫夋嫨鏂囦欢澶辫触', 'error');
+      showToast('选择文件失败', 'error');
     }
   }
 }
@@ -632,7 +632,7 @@ function scheduleFileWrite() {
           await writeToFileNow(fileHandle);
         } else {
           fileHandle = null;
-          showToast('鈿?鏂囦欢杩炴帴宸叉柇寮€锛屾暟鎹凡瀛樺埌娴忚鍣ㄦ殏瀛?, 'error');
+          showToast('⚠ 文件连接已断开，数据已存到浏览器暂存', 'error');
           updateStatusBar();
         }
       }
@@ -649,7 +649,7 @@ async function readFromFile(handle) {
   } catch (e) { return null; }
 }
 
-// 鈹€鈹€ localStorage 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── localStorage ─────────────────────────────────────────
 const STORAGE_KEY = 'dailyReportData_v3';
 
 function collectAllData() {
@@ -693,7 +693,7 @@ function saveToLocalStorage() {
     updateStatusBar();
   } catch (e) {
     // Storage full or private mode blocked
-    showToast('鈿?娴忚鍣ㄥ瓨鍌ㄥけ璐ワ紝璇锋竻鐞嗙紦瀛樻垨閫夋嫨鍚屾鏂囦欢', 'error');
+    showToast('⚠ 浏览器存储失败，请清理缓存或选择同步文件', 'error');
   }
 }
 
@@ -703,7 +703,7 @@ function scheduleSaveFlash() {
   saveFlashTimer = setTimeout(showSaveFlash, 10000); // show every 10s as confirmation
 }
 
-// 鈹€鈹€ Unified auto-save 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Unified auto-save ────────────────────────────────────
 function autoSave() {
   saveToLocalStorage();           // Always save to localStorage immediately
   scheduleFileWrite();            // Debounced file write
@@ -764,7 +764,7 @@ function loadFromLocalStorage() {
   } catch (e) { return false; }
 }
 
-// 鈹€鈹€ Status bar 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Status bar ───────────────────────────────────────────
 function updateStatusBar() {
   const dot = $('#statusDot');
   const text = $('#statusText');
@@ -772,23 +772,23 @@ function updateStatusBar() {
 
   if (fileHandle) {
     dot.className = 'dot green';
-    text.innerHTML = '馃搧 鑷姩鍚屾鑷?<span class="file-name">' + fileHandle.name + '</span>锛堟斁鍦ㄧ綉鐩樼洰褰曞嵆鍙法鐢佃剳鍚屾锛?;
+    text.innerHTML = '📁 自动同步至 <span class="file-name">' + fileHandle.name + '</span>（放在网盘目录即可跨电脑同步）';
   } else {
     const hasData = localStorage.getItem(STORAGE_KEY);
     dot.className = hasData ? 'dot orange' : 'dot gray';
     text.textContent = hasData
-      ? '馃捇 鏁版嵁淇濆瓨鍦ㄦ祻瑙堝櫒鏈湴锛堟崲鐢佃剳浼氫涪澶憋紝璇风偣銆岃缃悓姝ユ枃浠躲€嶆垨銆屽鍑哄浠姐€嶏級'
-      : '鏈繛鎺ュ悓姝ユ枃浠?鈥?鏁版嵁浠呬繚瀛樺湪褰撳墠娴忚鍣?;
+      ? '💻 数据保存在浏览器本地（换电脑会丢失，请点「设置同步文件」或「导出备份」）'
+      : '未连接同步文件 — 数据仅保存在当前浏览器';
   }
 
   if (lastSaveTime) {
-    time.textContent = '涓婃淇濆瓨: ' + lastSaveTime.toLocaleTimeString('zh-CN');
+    time.textContent = '上次保存: ' + lastSaveTime.toLocaleTimeString('zh-CN');
   } else {
     time.textContent = '';
   }
 }
 
-// 鈹€鈹€ Paste parser 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Paste parser ─────────────────────────────────────────
 function parsePasteText(raw, personIdx) {
   const text = raw.trim();
   if (!text) return {};
@@ -803,9 +803,9 @@ function parsePasteText(raw, personIdx) {
   let restLines = [];
 
   // Keywords for routing
-  const workKeywords = ['浠婃棩宸ヤ綔', '宸ヤ綔鍐呭', '宸ヤ綔', '浠婂ぉ', '浠婃棩'];
-  const planKeywords = ['鏄庢棩宸ヤ綔璁″垝', '鏄庢棩璁″垝', '鏄庢棩', '鏄庡ぉ璁″垝', '鏄庢棩宸ヤ綔', '鏄庡ぉ'];
-  const premiumKeywords = ['淇濊垂棰勪及', '淇濊垂', '鏄庢棩淇濊垂', '棰勪及淇濊垂', '棰勪及'];
+  const workKeywords = ['今日工作', '工作内容', '工作', '今天', '今日'];
+  const planKeywords = ['明日工作计划', '明日计划', '明日', '明天计划', '明日工作', '明天'];
+  const premiumKeywords = ['保费预估', '保费', '明日保费', '预估保费', '预估'];
 
   let currentSection = 'work'; // default bucket
 
@@ -841,7 +841,7 @@ function parsePasteText(raw, personIdx) {
 
   // Second pass: try to extract numbers from unstructured lines
   if (restLines.length) {
-    const extra = extractNumbersFromText(restLines.join('锛?));
+    const extra = extractNumbersFromText(restLines.join('；'));
     for (const [k, v] of Object.entries(extra)) {
       if (result[k] === undefined || result[k] === '') result[k] = v;
     }
@@ -851,10 +851,10 @@ function parsePasteText(raw, personIdx) {
 }
 
 function extractKV(line) {
-  // Match: "鍏抽敭璇? followed by optional colon "锛?銆?:"銆?鏄? and then the value
+  // Match: "关键词" followed by optional colon "："、":"、"是" and then the value
   const patterns = [
-    /^(.+?)[锛?]\s*(.+)$/,
-    /^(.+?)\s*[鏄负]\s*(.+)$/,
+    /^(.+?)[：:]\s*(.+)$/,
+    /^(.+?)\s*[是为]\s*(.+)$/,
   ];
   for (const re of patterns) {
     const m = line.match(re);
@@ -866,19 +866,19 @@ function extractKV(line) {
 function mapToField(key) {
   const k = key.replace(/\s+/g, '').toLowerCase();
   const map = {
-    '娓犻亾缁忚惀': 'channelWork', '娓犻亾': 'channelWork',
-    '娲诲姩璧嬭兘': 'activity', '娲诲姩': 'activity',
-    '鍩硅杈呭': 'training', '鍩硅': 'training',
-    '鏈夋晥闈㈣皥浜烘暟': 'fansInterview', '鏈夋晥闈㈣皥': 'fansInterview', '闈㈣皥浜烘暟': 'fansInterview', '闈㈣皥': 'fansInterview',
-    '璁″垝涔﹂€掗€佷唤鏁?: 'fansPlan', '璁″垝涔?: 'fansPlan', '璁″垝涔︿唤鏁?: 'fansPlan',
-    '鏂板绮変笣浜烘暟': 'fansNew', '鏂板绮変笣': 'fansNew', '绮変笣浜烘暟': 'fansNew',
-    '鏂板娲荤矇浜烘暟': 'fansActive', '鏂板娲荤矇': 'fansActive', '娲荤矇浜烘暟': 'fansActive',
-    '鏂板楂榩绮変汉鏁?: 'fansHighP', '鏂板楂榩绮?: 'fansHighP', '楂榩绮変汉鏁?: 'fansHighP', '楂榩绮?: 'fansHighP',
-    '绾夸笂鍝佸': 'specialOnline', '鍝佸绡囨暟': 'specialOnline', '绾夸笂鍝佸绡囨暟': 'specialOnline', '鍝佸': 'specialOnline',
-    '绾夸笅鍩硅': 'specialTrain', '鍩硅鍦烘暟': 'specialTrain',
-    '绾夸笅娲诲姩': 'specialAct', '娲诲姩鍦烘暟': 'specialAct',
-    '琛ㄧ幇浜偣': 'excellent', '浜偣': 'excellent',
-    '闇€鏀硅繘': 'improve', '鏀硅繘': 'improve', '鏀硅繘浜嬮」': 'improve',
+    '渠道经营': 'channelWork', '渠道': 'channelWork',
+    '活动赋能': 'activity', '活动': 'activity',
+    '培训辅导': 'training', '培训': 'training',
+    '有效面谈人数': 'fansInterview', '有效面谈': 'fansInterview', '面谈人数': 'fansInterview', '面谈': 'fansInterview',
+    '计划书递送份数': 'fansPlan', '计划书': 'fansPlan', '计划书份数': 'fansPlan',
+    '新增粉丝人数': 'fansNew', '新增粉丝': 'fansNew', '粉丝人数': 'fansNew',
+    '新增活粉人数': 'fansActive', '新增活粉': 'fansActive', '活粉人数': 'fansActive',
+    '新增高p粉人数': 'fansHighP', '新增高p粉': 'fansHighP', '高p粉人数': 'fansHighP', '高p粉': 'fansHighP',
+    '线上品宣': 'specialOnline', '品宣篇数': 'specialOnline', '线上品宣篇数': 'specialOnline', '品宣': 'specialOnline',
+    '线下培训': 'specialTrain', '培训场数': 'specialTrain',
+    '线下活动': 'specialAct', '活动场数': 'specialAct',
+    '表现亮点': 'excellent', '亮点': 'excellent',
+    '需改进': 'improve', '改进': 'improve', '改进事项': 'improve',
   };
   return map[k] || null;
 }
@@ -887,18 +887,18 @@ function extractNumbersFromText(text) {
   const result = {};
   // Extract numbers with context
   const patterns = [
-    { re: /鏈夋晥闈㈣皥[^0-9]*(\d+)\s*浜?i, field: 'fansInterview' },
-    { re: /闈㈣皥[^0-9]*(\d+)\s*浜?i, field: 'fansInterview' },
-    { re: /璁″垝涔^0-9]*(\d+)\s*[浠戒汉]/i, field: 'fansPlan' },
-    { re: /鏂板绮変笣[^0-9]*(\d+)\s*浜?i, field: 'fansNew' },
-    { re: /鏂板娲荤矇[^0-9]*(\d+)\s*浜?i, field: 'fansActive' },
-    { re: /楂楶绮塠^0-9]*(\d+)\s*浜?i, field: 'fansHighP' },
-    { re: /绾夸笂鍝佸[^0-9]*(\d+)\s*绡?i, field: 'specialOnline' },
-    { re: /绾夸笅鍩硅[^0-9]*(\d+)\s*鍦?i, field: 'specialTrain' },
-    { re: /绾夸笅娲诲姩[^0-9]*(\d+)\s*鍦?i, field: 'specialAct' },
-    { re: /鍝佸[^0-9]*(\d+)\s*绡?i, field: 'specialOnline' },
-    { re: /鍩硅[^0-9]*(\d+)\s*鍦?i, field: 'specialTrain' },
-    { re: /娲诲姩[^0-9]*(\d+)\s*鍦?i, field: 'specialAct' },
+    { re: /有效面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
+    { re: /面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
+    { re: /计划书[^0-9]*(\d+)\s*[份人]/i, field: 'fansPlan' },
+    { re: /新增粉丝[^0-9]*(\d+)\s*人/i, field: 'fansNew' },
+    { re: /新增活粉[^0-9]*(\d+)\s*人/i, field: 'fansActive' },
+    { re: /高P粉[^0-9]*(\d+)\s*人/i, field: 'fansHighP' },
+    { re: /线上品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
+    { re: /线下培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
+    { re: /线下活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
+    { re: /品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
+    { re: /培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
+    { re: /活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
   ];
   for (const { re, field } of patterns) {
     const m = text.match(re);
@@ -924,7 +924,7 @@ function fillPersonFromData(personIdx, data) {
   autoSave();
 }
 
-// 鈹€鈹€ build person cards 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── build person cards ──────────────────────────────────
 function buildCards() {
   const grid = document.getElementById("personGrid");
   grid.innerHTML = "";
@@ -940,23 +940,23 @@ function buildCards() {
     personData[i].name = DEFAULT_NAMES[i];
 
     const pasteToggle = E("button", {
-      type: "button", className: "paste-toggle", textContent: "馃搵 绮樿创",
-      title: "灞曞紑蹇嵎绮樿创鍖猴紝鍙洿鎺ョ矘璐翠紮浼村彂鏉ョ殑姹囨姤鏂囨湰鑷姩瑙ｆ瀽濉厖",
+      type: "button", className: "paste-toggle", textContent: "📋 粘贴",
+      title: "展开快捷粘贴区，可直接粘贴伙伴发来的汇报文本自动解析填充",
       onClick: (e) => {
         e.stopPropagation();
         const pasteArea = card.querySelector(".paste-area");
         const isOpen = pasteArea.classList.toggle("show");
-        e.target.textContent = isOpen ? "馃搵 鏀惰捣绮樿创" : "馃搵 绮樿创";
+        e.target.textContent = isOpen ? "📋 收起粘贴" : "📋 粘贴";
       },
     });
 
     const toggleBtn = E("button", {
-      type: "button", className: "toggle-btn", textContent: "鏀惰捣",
+      type: "button", className: "toggle-btn", textContent: "收起",
       onClick: () => {
         const body = card.querySelector(".person-body");
         const hidden = body.style.display === "none";
         body.style.display = hidden ? "" : "none";
-        toggleBtn.textContent = hidden ? "鏀惰捣" : "灞曞紑";
+        toggleBtn.textContent = hidden ? "收起" : "展开";
       },
     });
     header.append(nameInput, pasteToggle, toggleBtn);
@@ -968,7 +968,7 @@ function buildCards() {
       const id = `p${i}_${f.id}`;
       let input;
       if (f.type === "textarea") {
-        input = E("textarea", { id, placeholder: f.label.replace(/锛?*锛?, "") });
+        input = E("textarea", { id, placeholder: f.label.replace(/（.*）/, "") });
       } else {
         input = E("input", { type: f.type, id, step: f.type === "number" ? "1" : undefined, value: "" });
       }
@@ -986,9 +986,9 @@ function buildCards() {
     const pasteHint = E("div", {
       className: "paste-hint",
     });
-    pasteHint.innerHTML = '馃挕 <b>蹇嵎绮樿创</b>锛氭妸浼欎即鍙戞潵鐨勬眹鎶ユ枃瀛楃矘璐村埌涓嬮潰锛岀偣銆岃В鏋愬～鍏呫€嶈嚜鍔ㄥ～鍏ヤ笂鏂瑰瓧娈点€?br>鏀寔鏍煎紡锛?code>娓犻亾缁忚惀锛氭槑浜氥€佷繚閫?/code> / <code>鏈夋晥闈㈣皥浜烘暟锛?2</code> / 鑷敱鏂囨湰锛堣嚜鍔ㄨ瘑鍒暟瀛楋級';
+    pasteHint.innerHTML = '💡 <b>快捷粘贴</b>：把伙伴发来的汇报文字粘贴到下面，点「解析填充」自动填入上方字段。<br>支持格式：<code>渠道经营：明亚、保通</code> / <code>有效面谈人数：12</code> / 自由文本（自动识别数字）';
     const pasteTextarea = E("textarea", {
-      placeholder: "鍦ㄦ绮樿创浼欎即鍙戞潵鐨勬眹鎶ュ唴瀹?..\n\n渚嬪锛歕n娓犻亾缁忚惀锛氭槑浜氥€佷繚閫氶┗鐐筡n浠婃棩宸ヤ綔锛氭槑浜氶┗鐐规矡閫氾紝娉版湁閼剰涓€瀵逛竴瀹ｅ\n鏈夋晥闈㈣皥浜烘暟锛?2\n璁″垝涔﹂€掗€佷唤鏁帮細2\n鏂板绮変笣浜烘暟锛?\n琛ㄧ幇浜偣锛氭嘲鏈夐懌鎰忔湁绾跨储\n鏄庢棩宸ヤ綔璁″垝锛氭槑浜氶┗鐐癸紝绾跨储钀藉湴杩借釜\n鏄庢棩淇濊垂棰勪及锛氭槑浜氭嘲缁欏埄5涓囪陡",
+      placeholder: "在此粘贴伙伴发来的汇报内容...\n\n例如：\n渠道经营：明亚、保通驻点\n今日工作：明亚驻点沟通，泰有鑫意一对一宣导\n有效面谈人数：12\n计划书递送份数：2\n新增粉丝人数：3\n表现亮点：泰有鑫意有线索\n明日工作计划：明亚驻点，线索落地追踪\n明日保费预估：明亚泰给利5万趸",
       onInput: (e) => {
         // Auto-parse on input (debounced)
         clearTimeout(pasteTextarea._parseTimer);
@@ -996,20 +996,20 @@ function buildCards() {
     });
     const pasteMsg = E("span", { className: "paste-msg" });
     const parseBtn = E("button", {
-      textContent: "馃攳 瑙ｆ瀽濉厖",
+      textContent: "🔍 解析填充",
       onClick: () => {
         const raw = pasteTextarea.value.trim();
-        if (!raw) { showToast('璇峰厛绮樿创鍐呭', 'error'); return; }
+        if (!raw) { showToast('请先粘贴内容', 'error'); return; }
         const data = parsePasteText(raw, i);
         const filled = Object.keys(data).filter(k => data[k] !== undefined && data[k] !== '');
         fillPersonFromData(i, data);
         pasteMsg.style.display = 'inline';
-        pasteMsg.textContent = '鉁?宸茶В鏋愬～鍏?' + filled.length + ' 涓瓧娈?;
+        pasteMsg.textContent = '✓ 已解析填充 ' + filled.length + ' 个字段';
         setTimeout(() => { pasteMsg.style.display = 'none'; }, 2000);
       },
     });
     const clearPasteBtn = E("button", {
-      className: "secondary", textContent: "娓呯┖绮樿创鍖?,
+      className: "secondary", textContent: "清空粘贴区",
       onClick: () => { pasteTextarea.value = ''; },
     });
     const pasteActions = E("div", { className: "paste-actions" });
@@ -1021,7 +1021,7 @@ function buildCards() {
   }
 }
 
-// 鈹€鈹€ attach summary + result auto-save 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── attach summary + result auto-save ───────────────────
 function attachSummaryAutoSave() {
   const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => {
@@ -1032,13 +1032,13 @@ function attachSummaryAutoSave() {
   $('#result').addEventListener('input', autoSave);
 }
 
-// 鈹€鈹€ collect data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── collect data ────────────────────────────────────────
 function getSummary() {
   const [actTarget, actDone] = splitPair($("#activityPeople").value);
   const [chTarget, chDone] = splitPair($("#channelCount").value);
   return {
     date: $("#reportDate").value.trim(),
-    monthLabel: $("#monthLabel").value.trim() || "鏈湀",
+    monthLabel: $("#monthLabel").value.trim() || "本月",
     todayPresale: n($("#todayPresale").value),
     todayUnderwrite: n($("#todayUnderwrite").value),
     monthPresale: n($("#monthPresale").value),
@@ -1062,7 +1062,7 @@ function getSummary() {
 
 function getPeople() {
   return personData.map((p, i) => ({
-    name: p.name || `浼欎即${i+1}`,
+    name: p.name || `伙伴${i+1}`,
     work: lines(p.work),
     channelWork: p.channelWork || "",
     activity: p.activity || "",
@@ -1082,7 +1082,7 @@ function getPeople() {
   }));
 }
 
-// 鈹€鈹€ merge 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── merge ────────────────────────────────────────────────
 function merge(people) {
   const m = {
     work: [], plan: [], premium: [],
@@ -1112,7 +1112,7 @@ function merge(people) {
   return m;
 }
 
-// 鈹€鈹€ render report 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── render report ───────────────────────────────────────
 function render(s, people, m) {
   const dateCode = s.date.replace(/\./g,"");
   const ml = s.monthLabel;
@@ -1123,66 +1123,66 @@ function render(s, people, m) {
   const planItems = unique(m.plan);
   const premiumItems = unique(m.premium);
 
-  const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("銆?);
-  const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("锛?);
+  const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("、");
+  const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("；");
   const excellent = m.excellent.length
-    ? `${excellentNames}锛?{excellentTexts}`
-    : `${people.map(p=>p.name).join("銆?)}锛涘伐浣滄帹杩涙甯竊;
+    ? `${excellentNames}；${excellentTexts}`
+    : `${people.map(p=>p.name).join("、")}；工作推进正常`;
 
-  const improveNames = m.improve.map(e => e.name).filter(onlyUnique).join("銆?);
-  const improveTexts = m.improve.map(e => e.text).filter(onlyUnique).join("锛?);
-  const improve = m.improve.length ? `${improveNames}锛?{improveTexts}` : "鏃?;
+  const improveNames = m.improve.map(e => e.name).filter(onlyUnique).join("、");
+  const improveTexts = m.improve.map(e => e.text).filter(onlyUnique).join("；");
+  const improve = m.improve.length ? `${improveNames}；${improveTexts}` : "无";
 
-  const channel = unique(m.channelWork).join("銆?) || "鏃?;
-  const activity = unique(m.activity).join("銆?) || "鏃?;
-  const training = unique(m.training).join("銆?) || "鏃?;
-  const workContent = workItems.length ? numberLines(workItems) : ["鏃?];
-  const planContent = planItems.length ? numberLines(planItems) : ["鏃?];
-  const premiumContent = premiumItems.length ? premiumItems : ["鏆傛棤"];
+  const channel = unique(m.channelWork).join("、") || "无";
+  const activity = unique(m.activity).join("、") || "无";
+  const training = unique(m.training).join("、") || "无";
+  const workContent = workItems.length ? numberLines(workItems) : ["无"];
+  const planContent = planItems.length ? numberLines(planItems) : ["无"];
+  const premiumContent = premiumItems.length ? premiumItems : ["暂无"];
 
   return [
-    "涓€銆?, "",
-    `銆?{dateCode}澶氬厓姹囨姤銆慲, "",
-    "涓€銆佺洰鏍囪繘搴?,
-    `浠婃棩棰勬敹${fmt(s.todayPresale)}涓噋锛屼粖鏃ユ壙淇?{fmt(s.todayUnderwrite)}涓噋锛?{ml}绱棰勬敹${fmt(s.monthPresale)}涓噋锛屾壙淇?{fmt(s.monthUnderwrite)}涓噋锛沗,
-    `${ml}娲诲姩浜哄姏鐩爣${fmt(s.activityTarget)}浜猴紝杈炬垚${fmt(s.activityDone)}浜猴紱鏈夋晥娓犻亾鐩爣${fmt(s.channelTarget)}涓紝杈炬垚${fmt(s.channelDone)}涓€俙,
-    `${ml}鐩爣${fmt(s.monthTarget)}涓囷紝浠诲姟杈炬垚${completion}`,
-    "", "浜屻€佷粖鏃ュ伐浣滄€荤粨锛?, ...workContent,
-    "", "涓夈€佹槑鏃ュ伐浣滆鍒掞細", ...planContent,
-    "", "涓夈€佹槑鏃ヤ繚璐归浼帮細", ...premiumContent,
-    "", "", "浜屻€?, "",
-    `鍥涘窛鍒嗗鍏冩棩鎶?{dateCode}`, "",
-    "涓€銆併€愭嘲鏈夐懌鎰忓搧瀹ｆ帹鍔ㄥ強涓氱哗鎯呭喌銆?,
-    "锛堜竴锛夊搧瀹?,
-    "1.娉版湁閼剰浠婃棩鍝佸锛?,
-    `绾夸笂${fmt(m.special.onlineToday)}绡囷紝`,
-    `绾夸笅鍩硅${fmt(m.special.trainToday)}鍦猴紝绾夸笅娲诲姩${fmt(m.special.actToday)}鍦篳,
-    "2.娉版湁閼剰鏈湀绱鍝佸锛?,
-    `绾夸笂${fmt(s.onlineMonth)}绡囷紝`,
-    `绾夸笅鍩硅${fmt(s.offlineTrainingMonth)}鍦猴紝绾夸笅娲诲姩${fmt(s.offlineActivityMonth)}鍦篳,
-    "锛堜簩锛変笟缁?,
-    `1.娉版湁閼剰鏈湀鐩爣锛?{fmt(s.specialTarget)}`,
-    `2.娉版湁閼剰浠婃棩鍙楃悊涓氱哗P锛?{fmt(s.specialToday)}`,
-    `3.娉版湁閼剰褰撴湀绱涓氱哗P锛?{fmt(s.specialMonth)}`,
-    `4.璺濈鐩爣宸锛?{fmt(specialGap)}`,
-    "", "浜屻€併€愪粖鏃ヤ富瑕佸伐浣滄眹鎶ャ€?,
-    `1.娓犻亾缁忚惀锛?{channel}`,
-    `2.娲诲姩璧嬭兘锛?{activity}`,
-    `3.鍩硅杈呭锛?{training}`,
-    `4.绮変笣缁忚惀锛氫粖鏃ュ畬鎴愭湁鏁堥潰璋堜汉鏁?{fmt(m.fans.interview)}浜恒€佽鍒掍功閫掗€佷唤鏁?{fmt(m.fans.plan)}浜恒€佹柊澧炵矇涓濅汉鏁?{fmt(m.fans.newFans)}浜恒€佹柊澧炴椿绮変汉鏁?{fmt(m.fans.activeFans)}浜猴紙绱${fmt(s.monthActiveFans)}浜猴級銆佹柊澧為珮P绮変汉鏁?{fmt(m.fans.highP)}浜猴紙绱${fmt(s.monthHighPFans)}浜猴級銆俙,
-    "", "涓夈€併€愰儴鎬绘瘡鏃ュ涓嬪睘鐐硅瘎銆?,
-    `1. 浠婃棩琛ㄧ幇浼樼浜哄憳鍙婁寒鐐癸細${excellent}`,
-    `2. 闇€鏀硅繘浜哄憳鍙婂缓璁帾鏂斤細${improve}`,
-    "", "鍥涖€併€愭槑鏃ュ伐浣滆鍒掋€?,
-    `1.鏄庢棩閲嶇偣宸ヤ綔锛?{planItems.join("銆?)}`,
-    `2.鍩硅锛?{makeItem(planItems, ["鍩硅","瀹ｅ"])}`,
-    `3.娲诲姩锛?{makeItem(planItems, ["娲诲姩","娌欓緳"])}`,
-    "", "", "涓夈€?, "",
-    `銆?{s.date}鏃ュ鍏冩眹鎶ャ€戜粖鏃ラ鏀?{fmt(s.todayPresale)}涓嘝锛屾湰鏈堢疮璁￠鏀?{fmt(s.monthPresale)}涓嘝锛岀疮璁℃壙淇?{fmt(s.monthUnderwrite)}涓嘝锛涙槑鏃ラ浼?{fmt(s.tomorrowEstimate)}涓嘝`,
+    "一、", "",
+    `【${dateCode}多元汇报】`, "",
+    "一、目标进度",
+    `今日预收${fmt(s.todayPresale)}万p，今日承保${fmt(s.todayUnderwrite)}万p；${ml}累计预收${fmt(s.monthPresale)}万p，承保${fmt(s.monthUnderwrite)}万p；`,
+    `${ml}活动人力目标${fmt(s.activityTarget)}人，达成${fmt(s.activityDone)}人；有效渠道目标${fmt(s.channelTarget)}个，达成${fmt(s.channelDone)}个。`,
+    `${ml}目标${fmt(s.monthTarget)}万，任务达成${completion}`,
+    "", "二、今日工作总结：", ...workContent,
+    "", "三、明日工作计划：", ...planContent,
+    "", "三、明日保费预估：", ...premiumContent,
+    "", "", "二、", "",
+    `四川分多元日报${dateCode}`, "",
+    "一、【泰有鑫意品宣推动及业绩情况】",
+    "（一）品宣",
+    "1.泰有鑫意今日品宣：",
+    `线上${fmt(m.special.onlineToday)}篇，`,
+    `线下培训${fmt(m.special.trainToday)}场，线下活动${fmt(m.special.actToday)}场`,
+    "2.泰有鑫意本月累计品宣：",
+    `线上${fmt(s.onlineMonth)}篇，`,
+    `线下培训${fmt(s.offlineTrainingMonth)}场，线下活动${fmt(s.offlineActivityMonth)}场`,
+    "（二）业绩",
+    `1.泰有鑫意本月目标：${fmt(s.specialTarget)}`,
+    `2.泰有鑫意今日受理业绩P：${fmt(s.specialToday)}`,
+    `3.泰有鑫意当月累计业绩P：${fmt(s.specialMonth)}`,
+    `4.距离目标差额：${fmt(specialGap)}`,
+    "", "二、【今日主要工作汇报】",
+    `1.渠道经营：${channel}`,
+    `2.活动赋能：${activity}`,
+    `3.培训辅导：${training}`,
+    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、新增活粉人数${fmt(m.fans.activeFans)}人（累计${fmt(s.monthActiveFans)}人）、新增高P粉人数${fmt(m.fans.highP)}人（累计${fmt(s.monthHighPFans)}人）。`,
+    "", "三、【部总每日对下属点评】",
+    `1. 今日表现优秀人员及亮点：${excellent}`,
+    `2. 需改进人员及建议措施：${improve}`,
+    "", "四、【明日工作规划】",
+    `1.明日重点工作：${planItems.join("、")}`,
+    `2.培训：${makeItem(planItems, ["培训","宣导"])}`,
+    `3.活动：${makeItem(planItems, ["活动","沙龙"])}`,
+    "", "", "三、", "",
+    `【${s.date}日多元汇报】今日预收${fmt(s.todayPresale)}万P，本月累计预收${fmt(s.monthPresale)}万P，累计承保${fmt(s.monthUnderwrite)}万P；明日预估${fmt(s.tomorrowEstimate)}万P`,
   ].join("\n");
 }
 
-// 鈹€鈹€ generator 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── generator ───────────────────────────────────────────
 function generate() {
   const s = getSummary();
   const people = getPeople().filter(p => p.work.length || p.plan.length || p.premium.length || p.excellent || p.improve);
@@ -1191,16 +1191,16 @@ function generate() {
   autoSave();
 }
 
-// 鈹€鈹€ copy / download 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── copy / download ─────────────────────────────────────
 async function copyResult() {
   const text = $("#result").value;
   if (!text.trim()) return;
   try {
     await navigator.clipboard.writeText(text);
     const b = $("#copyBtn"), prev = b.textContent;
-    b.textContent = "鉁?宸插鍒?;
+    b.textContent = "✓ 已复制";
     setTimeout(() => b.textContent = prev, 1200);
-  } catch (e) { showToast('澶嶅埗澶辫触锛岃鎵嬪姩閫夋嫨澶嶅埗', 'error'); }
+  } catch (e) { showToast('复制失败，请手动选择复制', 'error'); }
 }
 
 function downloadResult() {
@@ -1208,12 +1208,12 @@ function downloadResult() {
   if (!text.trim()) return;
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = E("a", { href: url, download: `姣忔棩姹囨姤_${new Date().toISOString().slice(0,10)}.txt` });
+  const a = E("a", { href: url, download: `每日汇报_${new Date().toISOString().slice(0,10)}.txt` });
   a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
 
-// 鈹€鈹€ export / import JSON 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── export / import JSON ────────────────────────────────
 function exportJSON() {
   const data = collectAllData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
@@ -1224,7 +1224,7 @@ function exportJSON() {
   });
   a.click(); a.remove();
   URL.revokeObjectURL(url);
-  showToast('鉁?澶囦唤鏂囦欢宸蹭笅杞?, 'success');
+  showToast('✓ 备份文件已下载', 'success');
 }
 
 function importJSON() {
@@ -1242,18 +1242,18 @@ async function handleImportFile(e) {
     syncToDOM();
     saveToLocalStorage();
     if (fileHandle) await writeToFileNow(fileHandle);
-    showToast('鉁?鏁版嵁宸叉仮澶?, 'success');
+    showToast('✓ 数据已恢复', 'success');
   } catch (err) {
-    showToast('瀵煎叆澶辫触锛岃妫€鏌ユ枃浠舵牸寮?, 'error');
+    showToast('导入失败，请检查文件格式', 'error');
   }
 }
 
-// 鈹€鈹€ samples 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── samples ─────────────────────────────────────────────
 const SAMPLES = [
-  { name:"鏉庣孩闇?, work:["鏄庝簹娓犻亾椹荤偣娌熼€?,"娉版湁閼剰涓€瀵逛竴瀹ｅ锛岃窡杩涢珮P绾跨储2涓?], channelWork:"鏄庝簹銆佷繚閫氶┗鐐?, fansInterview:12, fansPlan:2, fansNew:3, excellent:"娉版湁閼剰鏈夌嚎绱?, plan:["鏄庝簹椹荤偣","绾跨储钀藉湴杩借釜"], premium:["鏄庝簹:娉扮粰鍒?涓囪陡"] },
-  { name:"閽熷崕", work:["澶х缁╀紭娌熼€氫氦娴?,"澶х楂樼娓犻亾缁忚惀"], channelWork:"澶х銆佸勾涓?, fansInterview:10, fansPlan:2, fansNew:2, fansActive:1, excellent:"缁╀紭绮変笣涓庡唴鍕ゆ繁搴︽矡閫?, plan:["澶х椹荤偣","缁╀紭浼欎即浜у搧娌熼€?], premium:["澶х:娉拌耽瀹?0涓?骞?] },
-  { name:"鍒樻澃", work:["淇濋€氭嘲鏈夐懌鎰忚嚜濯掍綋鍩硅鍙婃帹鍔?,"娉版湁閼剰绾夸笂鍝佸0绡囷紝绾夸笅鍩硅0鍦?], training:"淇濋€氳嚜濯掍綋鍩硅", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"娉版湁閼剰涓€瀵逛竴鎺ㄥ姩椤诲姞蹇?, plan:["淇濋€氭嘲鏈夐懌鎰忓鎴锋矙榫?,"娉扮粰鍒╁鎴锋矙榫?], premium:["浜笢:娉扮粰鍒?0涓囪陡"] },
-  { name:"鏈变腑鍥?, work:["骞翠赴銆佹硾鍗庨┗鐐?,"瀹㈡埛娌欓緳閭€绾?], channelWork:"骞翠赴銆佹硾鍗?, fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"娉版湁閼剰鎺ㄥ姩鑺傚闇€鍔犲揩", plan:["鎭掗偊630鍐插埡鍩硅","瀹濈憺娉版湁閼剰绾夸笂鍩硅","骞翠赴鍚村┓鐟跺洟闃熶骇鍝佸煿璁?] },
+  { name:"李红霞", work:["明亚渠道驻点沟通","泰有鑫意一对一宣导，跟进高P线索2个"], channelWork:"明亚、保通驻点", fansInterview:12, fansPlan:2, fansNew:3, excellent:"泰有鑫意有线索", plan:["明亚驻点","线索落地追踪"], premium:["明亚:泰给利5万趸"] },
+  { name:"钟华", work:["大童绩优沟通交流","大童高端渠道经营"], channelWork:"大童、年丰", fansInterview:10, fansPlan:2, fansNew:2, fansActive:1, excellent:"绩优粉丝与内勤深度沟通", plan:["大童驻点","绩优伙伴产品沟通"], premium:["大童:泰赢家20万3年"] },
+  { name:"刘杰", work:["保通泰有鑫意自媒体培训及推动","泰有鑫意线上品宣0篇，线下培训0场"], training:"保通自媒体培训", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意一对一推动须加快", plan:["保通泰有鑫意客户沙龙","泰给利客户沙龙"], premium:["京东:泰给利10万趸"] },
+  { name:"朱中国", work:["年丰、泛华驻点","客户沙龙邀约"], channelWork:"年丰、泛华", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意推动节奏需加快", plan:["恒邦630冲刺培训","宝瑞泰有鑫意线上培训","年丰吴婷瑶团队产品培训"] },
 ];
 
 function fillSample() {
@@ -1280,12 +1280,12 @@ function fillSample() {
       personData[i][f.id] = typeof val === "string" ? val : String(val);
     }
     card.querySelector(".person-body").style.display = "";
-    card.querySelector(".toggle-btn").textContent = "鏀惰捣";
+    card.querySelector(".toggle-btn").textContent = "收起";
   }
   generate();
 }
 
-// 鈹€鈹€ clear 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── clear ───────────────────────────────────────────────
 function clearAll() {
   const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
@@ -1302,29 +1302,29 @@ function clearAll() {
   $("#result").value = "";
   localStorage.removeItem(STORAGE_KEY);
   if (fileHandle) writeToFileNow(fileHandle);
-  showToast('宸叉竻绌烘墍鏈夋暟鎹?, 'success');
+  showToast('已清空所有数据', 'success');
 }
 
-// 鈹€鈹€ utilities 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
 function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
 function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
-function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}銆?{item}`) : ["鏃?]; }
-function makeItem(items, keywords) { const matched = items.filter(it => keywords.some(k => it.includes(k))); return matched.length ? matched.join("銆?) : "鏃?; }
+function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"]; }
+function makeItem(items, keywords) { const matched = items.filter(it => keywords.some(k => it.includes(k))); return matched.length ? matched.join("、") : "无"; }
 function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Boolean))]; }
 
-// 鈹€鈹€ collapse all 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── collapse all ────────────────────────────────────────
 function collapseAll() {
   $$(".person-card").forEach(card => {
     const body = card.querySelector(".person-body");
     const btn = card.querySelector(".toggle-btn");
-    if (body.style.display !== "none") { body.style.display = "none"; btn.textContent = "灞曞紑"; }
+    if (body.style.display !== "none") { body.style.display = "none"; btn.textContent = "展开"; }
   });
 }
 
-// 鈹€鈹€ init 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── init ────────────────────────────────────────────────
 async function init() {
   buildCards();
   checkFileAPI();
@@ -1349,7 +1349,7 @@ async function init() {
   if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
     // First visit: load defaults
     $('#reportDate').value = '6.11';
-    $('#monthLabel').value = '6鏈?;
+    $('#monthLabel').value = '6月';
   }
   const loaded = loadFromLocalStorage();
 
