@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>每日汇报填写汇总工具</title>
+  <title>姣忔棩姹囨姤濉啓姹囨€诲伐鍏?/title>
   <style>
 :root {
   --bg: #f4f5f8;
@@ -14,6 +14,10 @@
   --brand: #0b7f74;
   --brand-hover: #09685e;
   --soft: #ecf7f5;
+  --warn: #e67e22;
+  --success: #27ae60;
+  --paste-bg: #fff8e7;
+  --paste-border: #f0d78c;
   --radius: 8px;
 }
 
@@ -27,7 +31,7 @@ body {
   font-size: 14px;
 }
 
-input, textarea, button { font: inherit; }
+input, textarea, button, select { font: inherit; }
 
 .shell {
   width: min(1500px, calc(100vw - 32px));
@@ -41,14 +45,14 @@ input, textarea, button { font: inherit; }
   justify-content: space-between;
   align-items: flex-end;
   gap: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 h1 { font-size: 22px; margin: 0; }
 h2 { font-size: 15px; margin: 0; }
 .topbar p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 
-.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 button {
   height: 36px;
@@ -69,6 +73,41 @@ button.secondary {
 }
 button.secondary:hover { background: var(--soft); }
 button.small { height: 30px; font-size: 12px; padding: 0 12px; }
+button.warn-btn {
+  background: #fff;
+  color: var(--warn);
+  border-color: var(--warn);
+}
+button.warn-btn:hover { background: #fef5ec; }
+button.paste-btn {
+  background: #fff;
+  color: #b8860b;
+  border-color: #d4a017;
+}
+button.paste-btn:hover { background: #fff8e7; }
+
+/* status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  margin-bottom: 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  min-height: 32px;
+  flex-wrap: wrap;
+}
+.status-bar .dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.dot.green { background: var(--success); }
+.dot.orange { background: var(--warn); }
+.dot.gray { background: #94a3b8; }
+.status-bar .file-name { font-weight: 600; color: var(--brand); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.status-bar .save-time { color: var(--muted); font-size: 11px; margin-left: auto; }
 
 /* summary */
 .summary-box {
@@ -158,16 +197,19 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
   background: transparent;
 }
 .person-card-header .name-input:focus { outline: none; }
-.person-card-header .toggle-btn {
+.person-card-header .toggle-btn,
+.person-card-header .paste-toggle {
   border: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   padding: 2px 8px;
   height: auto;
 }
-.person-card-header .toggle-btn:hover { color: var(--text); }
+.person-card-header .paste-toggle { color: #b8860b; font-weight: 600; }
+.person-card-header .toggle-btn:hover,
+.person-card-header .paste-toggle:hover { color: var(--text); }
 
 .person-body {
   display: grid;
@@ -212,6 +254,54 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
   min-height: 54px;
 }
 
+/* paste area */
+.paste-area {
+  display: none;
+  padding: 10px 12px;
+  border-top: 1px dashed var(--paste-border);
+  background: var(--paste-bg);
+}
+.paste-area.show { display: block; }
+.paste-area textarea {
+  width: 100%;
+  min-height: 90px;
+  border: 1px solid var(--paste-border);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  background: #fffdf5;
+  outline: none;
+  margin-bottom: 6px;
+}
+.paste-area textarea:focus { border-color: #d4a017; box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12); }
+.paste-area .paste-hint {
+  font-size: 11px;
+  color: #a0843b;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.paste-area .paste-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.paste-area .paste-actions button {
+  height: 28px;
+  font-size: 12px;
+  padding: 0 12px;
+  border-color: #b8860b;
+  background: #b8860b;
+  color: #fff;
+}
+.paste-area .paste-actions button:hover { background: #9a7209; }
+.paste-area .paste-actions button.secondary { background: #fff; color: #b8860b; }
+.paste-area .paste-msg { font-size: 11px; color: var(--success); margin-left: 8px; display: none; }
+
+/* hide file input */
+#importFile { display: none; }
+
 /* result */
 .result-section {
   border: 1px solid var(--line);
@@ -239,6 +329,42 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
   outline: none;
 }
 
+/* save flash */
+@keyframes saveFlash { 0%{opacity:1} 100%{opacity:0} }
+.save-flash {
+  position: fixed;
+  top: 12px;
+  right: 20px;
+  background: var(--success);
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 9999;
+  animation: saveFlash 2s forwards;
+  pointer-events: none;
+}
+
+/* toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: var(--success); }
+.toast.error { background: #e74c3c; }
+
 @media (max-width: 980px) {
   .person-grid { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); }
@@ -247,7 +373,6 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
   .summary-grid { grid-template-columns: 1fr; }
   .person-body { grid-template-columns: 1fr; }
 }
-
 </style>
 </head>
 <body>
@@ -255,62 +380,76 @@ button.small { height: 30px; font-size: 12px; padding: 0 12px; }
 
   <header class="topbar">
     <div>
-      <h1>每日汇报填写汇总</h1>
-      <p>四位伙伴分别填写，一键生成三个汇报板块　<span id="saveIndicator" style="color:#0b7f74;font-size:12px;font-weight:normal;display:none;">✓ 已自动保存</span></p>
+      <h1>姣忔棩姹囨姤濉啓姹囨€?/h1>
+      <p>鍥涗綅浼欎即鍒嗗埆濉啓锛屼竴閿敓鎴愪笁涓眹鎶ユ澘鍧?/p>
     </div>
     <div class="actions">
-      <button id="sampleBtn" type="button" class="secondary">填入示例</button>
-      <button id="clearBtn" type="button" class="secondary">清空</button>
-      <button id="generateBtn" type="button">生成汇报</button>
+      <button id="pickFileBtn" type="button" class="secondary" title="杩炴帴鏈湴JSON鏂囦欢瀹炵幇璺ㄧ數鑴戝悓姝ワ紙寤鸿鏀剧綉鐩樼洰褰曪級">馃搧 璁剧疆鍚屾鏂囦欢</button>
+      <button id="exportBtn" type="button" class="secondary" title="涓嬭浇瀹屾暣鏁版嵁澶囦唤">猬?瀵煎嚭澶囦唤</button>
+      <button id="importBtn" type="button" class="secondary" title="浠庡浠芥枃浠舵仮澶嶆暟鎹?>猬?瀵煎叆鎭㈠</button>
+      <input type="file" id="importFile" accept=".json" />
+      <button id="sampleBtn" type="button" class="secondary">濉叆绀轰緥</button>
+      <button id="clearBtn" type="button" class="warn-btn">娓呯┖</button>
+      <button id="generateBtn" type="button">鐢熸垚姹囨姤</button>
     </div>
   </header>
 
+  <!-- status bar -->
+  <div class="status-bar" id="statusBar">
+    <span class="dot orange" id="statusDot"></span>
+    <span id="statusText">鏈繛鎺ュ悓姝ユ枃浠?鈥?鏁版嵁浠呬繚瀛樺湪褰撳墠娴忚鍣?/span>
+    <span class="save-time" id="saveTime"></span>
+  </div>
+
   <details class="summary-box" open>
-    <summary>团队汇总数据</summary>
+    <summary>鍥㈤槦姹囨€绘暟鎹?/summary>
     <div class="summary-grid">
-      <label>汇报日期<input id="reportDate" type="text" value="6.11" /></label>
-      <label>本月名称<input id="monthLabel" type="text" value="6月" /></label>
-      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" value="7.2" /></label>
-      <label>今日承保万P<input id="todayUnderwrite" type="number" step="0.1" value="19.2" /></label>
-      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" value="144.9" /></label>
-      <label>本月累计承保万P<input id="monthUnderwrite" type="number" step="0.1" value="296.8" /></label>
-      <label>月目标万P<input id="monthTarget" type="number" step="0.1" value="225" /></label>
-      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" value="6" /></label>
-      <label>活动人力 目标/达成<input id="activityPeople" type="text" value="120/96" /></label>
-      <label>有效渠道 目标/达成<input id="channelCount" type="text" value="6/5" /></label>
-      <label>泰有鑫意月目标<input id="specialTarget" type="number" value="10" /></label>
-      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" value="0" /></label>
-      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" value="0" /></label>
-      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" value="0" /></label>
-      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" value="11" /></label>
-      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" value="1" /></label>
-      <label>本月累计活粉人数<input id="monthActiveFans" type="number" value="0" /></label>
-      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" value="0" /></label>
+      <label>姹囨姤鏃ユ湡<input id="reportDate" type="text" /></label>
+      <label>鏈湀鍚嶇О<input id="monthLabel" type="text" /></label>
+      <label>浠婃棩棰勬敹涓嘝<input id="todayPresale" type="number" step="0.1" /></label>
+      <label>浠婃棩鎵夸繚涓嘝<input id="todayUnderwrite" type="number" step="0.1" /></label>
+      <label>鏈湀绱棰勬敹涓嘝<input id="monthPresale" type="number" step="0.1" /></label>
+      <label>鏈湀绱鎵夸繚涓嘝<input id="monthUnderwrite" type="number" step="0.1" /></label>
+      <label>鏈堢洰鏍囦竾P<input id="monthTarget" type="number" step="0.1" /></label>
+      <label>鏄庢棩棰勪及涓嘝<input id="tomorrowEstimate" type="number" step="0.1" /></label>
+      <label>娲诲姩浜哄姏 鐩爣/杈炬垚<input id="activityPeople" type="text" /></label>
+      <label>鏈夋晥娓犻亾 鐩爣/杈炬垚<input id="channelCount" type="text" /></label>
+      <label>娉版湁閼剰鏈堢洰鏍?input id="specialTarget" type="number" /></label>
+      <label>娉版湁閼剰鏈湀涓氱哗P<input id="specialMonth" type="number" /></label>
+      <label>娉版湁閼剰浠婃棩涓氱哗P<input id="specialToday" type="number" /></label>
+      <label>鏈湀绱绾夸笂鍝佸绡囨暟<input id="onlineMonth" type="number" /></label>
+      <label>鏈湀绱绾夸笅鍩硅鍦烘暟<input id="offlineTrainingMonth" type="number" /></label>
+      <label>鏈湀绱绾夸笅娲诲姩鍦烘暟<input id="offlineActivityMonth" type="number" /></label>
+      <label>鏈湀绱娲荤矇浜烘暟<input id="monthActiveFans" type="number" /></label>
+      <label>鏈湀绱楂楶绮変汉鏁?input id="monthHighPFans" type="number" /></label>
     </div>
   </details>
 
   <section class="person-section">
     <div class="person-section-header">
-      <h2>四人填写区</h2>
-      <button id="collapseAll" type="button" class="secondary small">全部折叠</button>
+      <h2>鍥涗汉濉啓鍖?/h2>
+      <button id="collapseAll" type="button" class="secondary small">鍏ㄩ儴鎶樺彔</button>
     </div>
     <div class="person-grid" id="personGrid"></div>
   </section>
 
   <section class="result-section">
     <div class="result-header">
-      <h2>生成结果</h2>
+      <h2>鐢熸垚缁撴灉</h2>
       <div class="actions">
-        <button id="copyBtn" type="button" class="secondary">复制全文</button>
-        <button id="downloadBtn" type="button" class="secondary">下载文本</button>
+        <button id="copyBtn" type="button" class="secondary">澶嶅埗鍏ㄦ枃</button>
+        <button id="downloadBtn" type="button" class="secondary">涓嬭浇鏂囨湰</button>
       </div>
     </div>
-    <textarea id="result" spellcheck="false" placeholder="点击「生成汇报」后结果出现在这里"></textarea>
+    <textarea id="result" spellcheck="false" placeholder="鐐瑰嚮銆岀敓鎴愭眹鎶ャ€嶅悗缁撴灉鍑虹幇鍦ㄨ繖閲?></textarea>
   </section>
 
+  <div class="toast" id="toast"></div>
+
 </main>
+
 <script>
-﻿// ── helpers ──────────────────────────────────────────────
+// 鈹€鈹€ helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const $ = (s, p) => (p || document).querySelector(s);
 const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
 const E = (tag, attrs = {}, children = []) => {
@@ -323,33 +462,199 @@ const E = (tag, attrs = {}, children = []) => {
   return el;
 };
 
-// ── form field definitions per person ────────────────────
+let toastTimer;
+function showToast(msg, type) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '');
+  clearTimeout(toastTimer);
+  requestAnimationFrame(() => {
+    t.classList.add('show');
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  });
+}
+
+function showSaveFlash() {
+  const el = document.createElement('div');
+  el.className = 'save-flash';
+  el.textContent = '馃捑 宸茶嚜鍔ㄤ繚瀛?;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2100);
+}
+
+// 鈹€鈹€ form field definitions per person 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const PERSON_FIELDS = [
-  { id: "work",         label: "今日工作内容（每行一条）",   type: "textarea",  span: "full-span" },
-  { id: "channelWork",  label: "渠道经营",   type: "text" },
-  { id: "activity",     label: "活动赋能",   type: "text" },
-  { id: "training",     label: "培训辅导",   type: "text" },
-  { id: "fansInterview", label: "有效面谈人数",    type: "number" },
-  { id: "fansPlan",     label: "计划书递送份数",  type: "number" },
-  { id: "fansNew",      label: "新增粉丝人数",    type: "number" },
-  { id: "fansActive",   label: "新增活粉人数",    type: "number" },
-  { id: "fansHighP",    label: "新增高P粉人数",   type: "number" },
-  { id: "specialOnline",  label: "泰有鑫意今日线上品宣篇数", type: "number" },
-  { id: "specialTrain",   label: "泰有鑫意今日线下培训场数", type: "number" },
-  { id: "specialAct",     label: "泰有鑫意今日线下活动场数", type: "number" },
-  { id: "excellent",    label: "表现亮点（内容即可，自动配人名）", type: "text", span: "full-span" },
-  { id: "improve",      label: "需改进事项（内容即可，自动配人名）", type: "text", span: "full-span" },
-  { id: "plan",         label: "明日工作计划（每行一条）", type: "textarea", span: "full-span" },
-  { id: "premium",      label: "明日保费预估（每行一条）", type: "textarea", span: "full-span" },
+  { id: "work",         label: "浠婃棩宸ヤ綔鍐呭锛堟瘡琛屼竴鏉★級",   type: "textarea",  span: "full-span" },
+  { id: "channelWork",  label: "娓犻亾缁忚惀",   type: "text" },
+  { id: "activity",     label: "娲诲姩璧嬭兘",   type: "text" },
+  { id: "training",     label: "鍩硅杈呭",   type: "text" },
+  { id: "fansInterview", label: "鏈夋晥闈㈣皥浜烘暟",    type: "number" },
+  { id: "fansPlan",     label: "璁″垝涔﹂€掗€佷唤鏁?,  type: "number" },
+  { id: "fansNew",      label: "鏂板绮変笣浜烘暟",    type: "number" },
+  { id: "fansActive",   label: "鏂板娲荤矇浜烘暟",    type: "number" },
+  { id: "fansHighP",    label: "鏂板楂楶绮変汉鏁?,   type: "number" },
+  { id: "specialOnline",  label: "娉版湁閼剰浠婃棩绾夸笂鍝佸绡囨暟", type: "number" },
+  { id: "specialTrain",   label: "娉版湁閼剰浠婃棩绾夸笅鍩硅鍦烘暟", type: "number" },
+  { id: "specialAct",     label: "娉版湁閼剰浠婃棩绾夸笅娲诲姩鍦烘暟", type: "number" },
+  { id: "excellent",    label: "琛ㄧ幇浜偣锛堝唴瀹瑰嵆鍙紝鑷姩閰嶄汉鍚嶏級", type: "text", span: "full-span" },
+  { id: "improve",      label: "闇€鏀硅繘浜嬮」锛堝唴瀹瑰嵆鍙紝鑷姩閰嶄汉鍚嶏級", type: "text", span: "full-span" },
+  { id: "plan",         label: "鏄庢棩宸ヤ綔璁″垝锛堟瘡琛屼竴鏉★級", type: "textarea", span: "full-span" },
+  { id: "premium",      label: "鏄庢棩淇濊垂棰勪及锛堟瘡琛屼竴鏉★級", type: "textarea", span: "full-span" },
 ];
 
-const DEFAULT_NAMES = ["伙伴1","伙伴2","伙伴3","伙伴4"];
+const DEFAULT_NAMES = ["浼欎即1","浼欎即2","浼欎即3","浼欎即4"];
 const personData = DEFAULT_NAMES.map(() => ({}));
 
-// ── localStorage helpers ────────────────────────────────
-const STORAGE_KEY = 'dailyReportData_v1';
-function saveToStorage() {
-  const data = {
+// 鈹€鈹€ File System Access API 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+let fileHandle = null;
+let hasFileAPI = false;
+let lastSaveTime = null;
+let saveFlashTimer = null;
+
+function checkFileAPI() {
+  hasFileAPI = typeof window.showSaveFilePicker === 'function';
+  if (!hasFileAPI) {
+    $('#statusText').textContent = '鈿?褰撳墠娴忚鍣ㄤ笉鏀寔鏂囦欢鍚屾锛堣鐢–hrome/Edge鎵撳紑浠ュ疄鐜拌法鐢佃剳鑷姩淇濆瓨锛?;
+    $('#statusDot').className = 'dot orange';
+    // Still show localStorage as active
+    if (localStorage.getItem(STORAGE_KEY)) {
+      $('#statusText').textContent = '馃捇 鏁版嵁宸蹭繚瀛樺湪娴忚鍣ㄦ湰鍦帮紙鎹㈢數鑴?娴忚鍣ㄤ細涓㈠け锛岃鐐广€屽鍑哄浠姐€嶏級';
+    }
+  }
+}
+
+const IDB_DB = 'dailyReportDB_v3';
+const IDB_STORE = 'fileHandle';
+
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_DB, 1);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function storeFileHandle(handle) {
+  if (!hasFileAPI) return;
+  try {
+    const db = await openIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(handle, 'current');
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  } catch (e) {}
+}
+
+async function recallFileHandle() {
+  if (!hasFileAPI) return null;
+  try {
+    const db = await openIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get('current');
+      req.onsuccess = () => { db.close(); resolve(req.result || null); };
+      req.onerror = () => { db.close(); resolve(null); };
+    });
+  } catch (e) { return null; }
+}
+
+async function verifyHandlePermission(handle) {
+  if (!handle) return false;
+  const opts = { mode: 'readwrite' };
+  const state = await handle.queryPermission(opts);
+  if (state === 'granted') return true;
+  if (state === 'prompt') {
+    const result = await handle.requestPermission(opts);
+    return result === 'granted';
+  }
+  return false;
+}
+
+async function pickSaveFile() {
+  if (!hasFileAPI) {
+    showToast('褰撳墠娴忚鍣ㄤ笉鏀寔锛岃浣跨敤Chrome/Edge鎵撳紑', 'error');
+    return;
+  }
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'daily-report-data.json',
+      types: [{ description: 'JSON Data', accept: { 'application/json': ['.json'] } }],
+    });
+    fileHandle = handle;
+    await storeFileHandle(handle);
+    // Write current data to new file
+    await writeToFileNow(handle);
+    updateStatusBar();
+    showToast('鉁?宸茶繛鎺? ' + handle.name + ' 鈥?涔嬪悗鎵€鏈変慨鏀归兘浼氳嚜鍔ㄤ繚瀛樺埌姝ゆ枃浠?, 'success');
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      console.error('pickSaveFile:', e);
+      showToast('閫夋嫨鏂囦欢澶辫触', 'error');
+    }
+  }
+}
+
+async function writeToFileNow(handle) {
+  if (!handle) return false;
+  try {
+    const data = collectAllData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    // Use createWritable for overwrite
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    lastSaveTime = new Date();
+    scheduleSaveFlash();
+    updateStatusBar();
+    return true;
+  } catch (e) {
+    console.warn('writeToFile:', e);
+    return false;
+  }
+}
+
+// Debounced file write (avoids hammering disk on every keystroke)
+let fileWriteTimer = null;
+function scheduleFileWrite() {
+  clearTimeout(fileWriteTimer);
+  fileWriteTimer = setTimeout(async () => {
+    if (fileHandle) {
+      const ok = await writeToFileNow(fileHandle);
+      if (!ok) {
+        const permOk = await verifyHandlePermission(fileHandle);
+        if (permOk) {
+          await writeToFileNow(fileHandle);
+        } else {
+          fileHandle = null;
+          showToast('鈿?鏂囦欢杩炴帴宸叉柇寮€锛屾暟鎹凡瀛樺埌娴忚鍣ㄦ殏瀛?, 'error');
+          updateStatusBar();
+        }
+      }
+    }
+  }, 1200);
+}
+
+async function readFromFile(handle) {
+  if (!handle) return null;
+  try {
+    const f = await handle.getFile();
+    const text = await f.text();
+    return JSON.parse(text);
+  } catch (e) { return null; }
+}
+
+// 鈹€鈹€ localStorage 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+const STORAGE_KEY = 'dailyReportData_v3';
+
+function collectAllData() {
+  return {
+    version: 3,
     summary: {
       reportDate: $('#reportDate').value,
       monthLabel: $('#monthLabel').value,
@@ -370,126 +675,370 @@ function saveToStorage() {
       monthActiveFans: $('#monthActiveFans').value,
       monthHighPFans: $('#monthHighPFans').value,
     },
-    people: personData.map((p, i) => {
-      const result = { name: p.name };
-      for (const f of PERSON_FIELDS) {
-        result[f.id] = p[f.id];
-      }
-      return result;
+    people: personData.map((p) => {
+      const r = { name: p.name };
+      for (const f of PERSON_FIELDS) r[f.id] = p[f.id];
+      return r;
     }),
     result: $('#result').value,
     savedAt: new Date().toISOString()
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  // Show save indicator
-  const ind = document.getElementById('saveIndicator');
-  if (ind) {
-    ind.style.display = 'inline';
-    clearTimeout(ind._timer);
-    ind._timer = setTimeout(() => { ind.style.display = 'none'; }, 1500);
+}
+
+function saveToLocalStorage() {
+  try {
+    const data = collectAllData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    lastSaveTime = new Date();
+    updateStatusBar();
+  } catch (e) {
+    // Storage full or private mode blocked
+    showToast('鈿?娴忚鍣ㄥ瓨鍌ㄥけ璐ワ紝璇锋竻鐞嗙紦瀛樻垨閫夋嫨鍚屾鏂囦欢', 'error');
   }
 }
-function loadFromStorage() {
+
+function scheduleSaveFlash() {
+  clearTimeout(saveFlashTimer);
+  showSaveFlash();
+  saveFlashTimer = setTimeout(showSaveFlash, 10000); // show every 10s as confirmation
+}
+
+// 鈹€鈹€ Unified auto-save 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+function autoSave() {
+  saveToLocalStorage();           // Always save to localStorage immediately
+  scheduleFileWrite();            // Debounced file write
+}
+
+// Also trigger flash periodically (every 30s if there's activity)
+let flashInterval = null;
+function startFlashInterval() {
+  if (flashInterval) clearInterval(flashInterval);
+  flashInterval = setInterval(() => {
+    // Only flash if we have localStorage data
+    if (localStorage.getItem(STORAGE_KEY)) showSaveFlash();
+  }, 30000);
+}
+
+function applyDataToForm(data) {
+  if (data.summary) {
+    Object.entries(data.summary).forEach(([k, v]) => {
+      const el = document.getElementById(k);
+      if (el) el.value = v || '';
+    });
+  }
+  if (data.people) {
+    const count = Math.min(data.people.length, 4);
+    for (let i = 0; i < count; i++) {
+      const p = data.people[i];
+      personData[i].name = p.name || DEFAULT_NAMES[i];
+      for (const f of PERSON_FIELDS) {
+        personData[i][f.id] = p[f.id] || '';
+      }
+    }
+  }
+  if (data.result) $('#result').value = data.result;
+}
+
+function syncToDOM() {
+  for (let i = 0; i < 4; i++) {
+    const card = $$(".person-card")[i];
+    if (!card) continue;
+    card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
+    for (const f of PERSON_FIELDS) {
+      const el = card.querySelector(`#p${i}_${f.id}`);
+      if (el) {
+        const val = personData[i][f.id];
+        el.value = (val !== undefined && val !== null) ? val : '';
+      }
+    }
+  }
+}
+
+function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    // Load summary
-    if (data.summary) {
-      Object.entries(data.summary).forEach(([k, v]) => {
-        const el = document.getElementById(k);
-        if (el) el.value = v || '';
-      });
-    }
-    // Load people
-    if (data.people && data.people.length === 4) {
-      data.people.forEach((p, i) => {
-        personData[i].name = p.name || DEFAULT_NAMES[i];
-        for (const f of PERSON_FIELDS) {
-          personData[i][f.id] = p[f.id] || '';
-        }
-      });
-    }
-    // Load result
-    if (data.result) {
-      $('#result').value = data.result;
-    }
+    applyDataToForm(data);
     return true;
-  } catch (e) {
-    console.error('Load failed:', e);
-    return false;
-  }
-}
-function clearStorage() {
-  localStorage.removeItem(STORAGE_KEY);
-  const ind = document.getElementById('saveIndicator');
-  if (ind) ind.style.display = 'none';
+  } catch (e) { return false; }
 }
 
-// ── build person cards ──────────────────────────────────
+// 鈹€鈹€ Status bar 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+function updateStatusBar() {
+  const dot = $('#statusDot');
+  const text = $('#statusText');
+  const time = $('#saveTime');
+
+  if (fileHandle) {
+    dot.className = 'dot green';
+    text.innerHTML = '馃搧 鑷姩鍚屾鑷?<span class="file-name">' + fileHandle.name + '</span>锛堟斁鍦ㄧ綉鐩樼洰褰曞嵆鍙法鐢佃剳鍚屾锛?;
+  } else {
+    const hasData = localStorage.getItem(STORAGE_KEY);
+    dot.className = hasData ? 'dot orange' : 'dot gray';
+    text.textContent = hasData
+      ? '馃捇 鏁版嵁淇濆瓨鍦ㄦ祻瑙堝櫒鏈湴锛堟崲鐢佃剳浼氫涪澶憋紝璇风偣銆岃缃悓姝ユ枃浠躲€嶆垨銆屽鍑哄浠姐€嶏級'
+      : '鏈繛鎺ュ悓姝ユ枃浠?鈥?鏁版嵁浠呬繚瀛樺湪褰撳墠娴忚鍣?;
+  }
+
+  if (lastSaveTime) {
+    time.textContent = '涓婃淇濆瓨: ' + lastSaveTime.toLocaleTimeString('zh-CN');
+  } else {
+    time.textContent = '';
+  }
+}
+
+// 鈹€鈹€ Paste parser 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+function parsePasteText(raw, personIdx) {
+  const text = raw.trim();
+  if (!text) return {};
+
+  const result = {};
+  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(Boolean);
+
+  // Category buckets
+  let workLines = [];
+  let planLines = [];
+  let premiumLines = [];
+  let restLines = [];
+
+  // Keywords for routing
+  const workKeywords = ['浠婃棩宸ヤ綔', '宸ヤ綔鍐呭', '宸ヤ綔', '浠婂ぉ', '浠婃棩'];
+  const planKeywords = ['鏄庢棩宸ヤ綔璁″垝', '鏄庢棩璁″垝', '鏄庢棩', '鏄庡ぉ璁″垝', '鏄庢棩宸ヤ綔', '鏄庡ぉ'];
+  const premiumKeywords = ['淇濊垂棰勪及', '淇濊垂', '鏄庢棩淇濊垂', '棰勪及淇濊垂', '棰勪及'];
+
+  let currentSection = 'work'; // default bucket
+
+  for (const line of lines) {
+    // Detect section changes
+    const lc = line.toLowerCase().replace(/\s+/g, '');
+    if (workKeywords.some(k => lc.includes(k))) { currentSection = 'work'; continue; }
+    if (planKeywords.some(k => lc.includes(k))) { currentSection = 'plan'; continue; }
+    if (premiumKeywords.some(k => lc.includes(k))) { currentSection = 'premium'; continue; }
+
+    // Try key-value extraction
+    const kv = extractKV(line);
+    if (kv) {
+      // Map to field
+      const field = mapToField(kv.key);
+      if (field) {
+        result[field] = kv.value;
+        continue;
+      }
+    }
+
+    // Route remaining lines
+    if (currentSection === 'work') workLines.push(line);
+    else if (currentSection === 'plan') planLines.push(line);
+    else if (currentSection === 'premium') premiumLines.push(line);
+    else restLines.push(line);
+  }
+
+  // Assign accumulated lines
+  if (workLines.length && !result.work) result.work = workLines.join('\n');
+  if (planLines.length && !result.plan) result.plan = planLines.join('\n');
+  if (premiumLines.length && !result.premium) result.premium = premiumLines.join('\n');
+
+  // Second pass: try to extract numbers from unstructured lines
+  if (restLines.length) {
+    const extra = extractNumbersFromText(restLines.join('锛?));
+    for (const [k, v] of Object.entries(extra)) {
+      if (result[k] === undefined || result[k] === '') result[k] = v;
+    }
+  }
+
+  return result;
+}
+
+function extractKV(line) {
+  // Match: "鍏抽敭璇? followed by optional colon "锛?銆?:"銆?鏄? and then the value
+  const patterns = [
+    /^(.+?)[锛?]\s*(.+)$/,
+    /^(.+?)\s*[鏄负]\s*(.+)$/,
+  ];
+  for (const re of patterns) {
+    const m = line.match(re);
+    if (m) return { key: m[1].trim(), value: m[2].trim() };
+  }
+  return null;
+}
+
+function mapToField(key) {
+  const k = key.replace(/\s+/g, '').toLowerCase();
+  const map = {
+    '娓犻亾缁忚惀': 'channelWork', '娓犻亾': 'channelWork',
+    '娲诲姩璧嬭兘': 'activity', '娲诲姩': 'activity',
+    '鍩硅杈呭': 'training', '鍩硅': 'training',
+    '鏈夋晥闈㈣皥浜烘暟': 'fansInterview', '鏈夋晥闈㈣皥': 'fansInterview', '闈㈣皥浜烘暟': 'fansInterview', '闈㈣皥': 'fansInterview',
+    '璁″垝涔﹂€掗€佷唤鏁?: 'fansPlan', '璁″垝涔?: 'fansPlan', '璁″垝涔︿唤鏁?: 'fansPlan',
+    '鏂板绮変笣浜烘暟': 'fansNew', '鏂板绮変笣': 'fansNew', '绮変笣浜烘暟': 'fansNew',
+    '鏂板娲荤矇浜烘暟': 'fansActive', '鏂板娲荤矇': 'fansActive', '娲荤矇浜烘暟': 'fansActive',
+    '鏂板楂榩绮変汉鏁?: 'fansHighP', '鏂板楂榩绮?: 'fansHighP', '楂榩绮変汉鏁?: 'fansHighP', '楂榩绮?: 'fansHighP',
+    '绾夸笂鍝佸': 'specialOnline', '鍝佸绡囨暟': 'specialOnline', '绾夸笂鍝佸绡囨暟': 'specialOnline', '鍝佸': 'specialOnline',
+    '绾夸笅鍩硅': 'specialTrain', '鍩硅鍦烘暟': 'specialTrain',
+    '绾夸笅娲诲姩': 'specialAct', '娲诲姩鍦烘暟': 'specialAct',
+    '琛ㄧ幇浜偣': 'excellent', '浜偣': 'excellent',
+    '闇€鏀硅繘': 'improve', '鏀硅繘': 'improve', '鏀硅繘浜嬮」': 'improve',
+  };
+  return map[k] || null;
+}
+
+function extractNumbersFromText(text) {
+  const result = {};
+  // Extract numbers with context
+  const patterns = [
+    { re: /鏈夋晥闈㈣皥[^0-9]*(\d+)\s*浜?i, field: 'fansInterview' },
+    { re: /闈㈣皥[^0-9]*(\d+)\s*浜?i, field: 'fansInterview' },
+    { re: /璁″垝涔^0-9]*(\d+)\s*[浠戒汉]/i, field: 'fansPlan' },
+    { re: /鏂板绮変笣[^0-9]*(\d+)\s*浜?i, field: 'fansNew' },
+    { re: /鏂板娲荤矇[^0-9]*(\d+)\s*浜?i, field: 'fansActive' },
+    { re: /楂楶绮塠^0-9]*(\d+)\s*浜?i, field: 'fansHighP' },
+    { re: /绾夸笂鍝佸[^0-9]*(\d+)\s*绡?i, field: 'specialOnline' },
+    { re: /绾夸笅鍩硅[^0-9]*(\d+)\s*鍦?i, field: 'specialTrain' },
+    { re: /绾夸笅娲诲姩[^0-9]*(\d+)\s*鍦?i, field: 'specialAct' },
+    { re: /鍝佸[^0-9]*(\d+)\s*绡?i, field: 'specialOnline' },
+    { re: /鍩硅[^0-9]*(\d+)\s*鍦?i, field: 'specialTrain' },
+    { re: /娲诲姩[^0-9]*(\d+)\s*鍦?i, field: 'specialAct' },
+  ];
+  for (const { re, field } of patterns) {
+    const m = text.match(re);
+    if (m) result[field] = m[1];
+  }
+  return result;
+}
+
+// Fill person form fields from parsed data
+function fillPersonFromData(personIdx, data) {
+  const card = $$(".person-card")[personIdx];
+  if (!card) return;
+
+  for (const f of PERSON_FIELDS) {
+    if (data[f.id] !== undefined && data[f.id] !== '') {
+      const el = card.querySelector(`#p${personIdx}_${f.id}`);
+      if (el) {
+        el.value = data[f.id];
+        personData[personIdx][f.id] = data[f.id];
+      }
+    }
+  }
+  autoSave();
+}
+
+// 鈹€鈹€ build person cards 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function buildCards() {
   const grid = document.getElementById("personGrid");
   grid.innerHTML = "";
   for (let i = 0; i < 4; i++) {
     const card = E("div", { className: "person-card", "data-idx": i });
 
+    // Header with name + toggle + paste button
     const header = E("div", { className: "person-card-header" });
     const nameInput = E("input", {
       type: "text", className: "name-input", value: DEFAULT_NAMES[i],
-      onInput: (e) => { personData[i].name = e.target.value; saveToStorage(); },
+      onInput: (e) => { personData[i].name = e.target.value; autoSave(); },
     });
     personData[i].name = DEFAULT_NAMES[i];
+
+    const pasteToggle = E("button", {
+      type: "button", className: "paste-toggle", textContent: "馃搵 绮樿创",
+      title: "灞曞紑蹇嵎绮樿创鍖猴紝鍙洿鎺ョ矘璐翠紮浼村彂鏉ョ殑姹囨姤鏂囨湰鑷姩瑙ｆ瀽濉厖",
+      onClick: (e) => {
+        e.stopPropagation();
+        const pasteArea = card.querySelector(".paste-area");
+        const isOpen = pasteArea.classList.toggle("show");
+        e.target.textContent = isOpen ? "馃搵 鏀惰捣绮樿创" : "馃搵 绮樿创";
+      },
+    });
+
     const toggleBtn = E("button", {
-      type: "button", className: "toggle-btn", textContent: "收起",
+      type: "button", className: "toggle-btn", textContent: "鏀惰捣",
       onClick: () => {
         const body = card.querySelector(".person-body");
         const hidden = body.style.display === "none";
         body.style.display = hidden ? "" : "none";
-        toggleBtn.textContent = hidden ? "收起" : "展开";
+        toggleBtn.textContent = hidden ? "鏀惰捣" : "灞曞紑";
       },
     });
-    header.append(nameInput, toggleBtn);
+    header.append(nameInput, pasteToggle, toggleBtn);
 
+    // Form body
     const body = E("div", { className: "person-body" });
     for (const f of PERSON_FIELDS) {
       const label = E("label", f.span ? { className: "full-span" } : {});
       const id = `p${i}_${f.id}`;
       let input;
       if (f.type === "textarea") {
-        input = E("textarea", { id, placeholder: f.label.replace(/（.*）/, "") });
+        input = E("textarea", { id, placeholder: f.label.replace(/锛?*锛?, "") });
       } else {
         input = E("input", { type: f.type, id, step: f.type === "number" ? "1" : undefined, value: "" });
       }
       personData[i][f.id] = "";
       input.addEventListener("input", (e) => {
         personData[i][f.id] = e.target.value;
-        saveToStorage();
+        autoSave();
       });
       label.append(f.label, input);
       body.append(label);
     }
 
-    card.append(header, body);
+    // Paste area
+    const pasteArea = E("div", { className: "paste-area" });
+    const pasteHint = E("div", {
+      className: "paste-hint",
+    });
+    pasteHint.innerHTML = '馃挕 <b>蹇嵎绮樿创</b>锛氭妸浼欎即鍙戞潵鐨勬眹鎶ユ枃瀛楃矘璐村埌涓嬮潰锛岀偣銆岃В鏋愬～鍏呫€嶈嚜鍔ㄥ～鍏ヤ笂鏂瑰瓧娈点€?br>鏀寔鏍煎紡锛?code>娓犻亾缁忚惀锛氭槑浜氥€佷繚閫?/code> / <code>鏈夋晥闈㈣皥浜烘暟锛?2</code> / 鑷敱鏂囨湰锛堣嚜鍔ㄨ瘑鍒暟瀛楋級';
+    const pasteTextarea = E("textarea", {
+      placeholder: "鍦ㄦ绮樿创浼欎即鍙戞潵鐨勬眹鎶ュ唴瀹?..\n\n渚嬪锛歕n娓犻亾缁忚惀锛氭槑浜氥€佷繚閫氶┗鐐筡n浠婃棩宸ヤ綔锛氭槑浜氶┗鐐规矡閫氾紝娉版湁閼剰涓€瀵逛竴瀹ｅ\n鏈夋晥闈㈣皥浜烘暟锛?2\n璁″垝涔﹂€掗€佷唤鏁帮細2\n鏂板绮変笣浜烘暟锛?\n琛ㄧ幇浜偣锛氭嘲鏈夐懌鎰忔湁绾跨储\n鏄庢棩宸ヤ綔璁″垝锛氭槑浜氶┗鐐癸紝绾跨储钀藉湴杩借釜\n鏄庢棩淇濊垂棰勪及锛氭槑浜氭嘲缁欏埄5涓囪陡",
+      onInput: (e) => {
+        // Auto-parse on input (debounced)
+        clearTimeout(pasteTextarea._parseTimer);
+      },
+    });
+    const pasteMsg = E("span", { className: "paste-msg" });
+    const parseBtn = E("button", {
+      textContent: "馃攳 瑙ｆ瀽濉厖",
+      onClick: () => {
+        const raw = pasteTextarea.value.trim();
+        if (!raw) { showToast('璇峰厛绮樿创鍐呭', 'error'); return; }
+        const data = parsePasteText(raw, i);
+        const filled = Object.keys(data).filter(k => data[k] !== undefined && data[k] !== '');
+        fillPersonFromData(i, data);
+        pasteMsg.style.display = 'inline';
+        pasteMsg.textContent = '鉁?宸茶В鏋愬～鍏?' + filled.length + ' 涓瓧娈?;
+        setTimeout(() => { pasteMsg.style.display = 'none'; }, 2000);
+      },
+    });
+    const clearPasteBtn = E("button", {
+      className: "secondary", textContent: "娓呯┖绮樿创鍖?,
+      onClick: () => { pasteTextarea.value = ''; },
+    });
+    const pasteActions = E("div", { className: "paste-actions" });
+    pasteActions.append(parseBtn, clearPasteBtn, pasteMsg);
+    pasteArea.append(pasteHint, pasteTextarea, pasteActions);
+
+    card.append(header, body, pasteArea);
     grid.append(card);
   }
 }
 
-// ── attach auto-save to summary fields ─────────────────
+// 鈹€鈹€ attach summary + result auto-save 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function attachSummaryAutoSave() {
   const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('input', saveToStorage);
+    if (el) el.addEventListener('input', autoSave);
   });
+  // Result textarea manual edit
+  $('#result').addEventListener('input', autoSave);
 }
 
-// ── collect data ────────────────────────────────────────
+// 鈹€鈹€ collect data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function getSummary() {
   const [actTarget, actDone] = splitPair($("#activityPeople").value);
   const [chTarget, chDone] = splitPair($("#channelCount").value);
   return {
     date: $("#reportDate").value.trim(),
-    monthLabel: $("#monthLabel").value.trim() || "本月",
+    monthLabel: $("#monthLabel").value.trim() || "鏈湀",
     todayPresale: n($("#todayPresale").value),
     todayUnderwrite: n($("#todayUnderwrite").value),
     monthPresale: n($("#monthPresale").value),
@@ -513,7 +1062,7 @@ function getSummary() {
 
 function getPeople() {
   return personData.map((p, i) => ({
-    name: p.name || `伙伴${i+1}`,
+    name: p.name || `浼欎即${i+1}`,
     work: lines(p.work),
     channelWork: p.channelWork || "",
     activity: p.activity || "",
@@ -533,7 +1082,7 @@ function getPeople() {
   }));
 }
 
-// ── merge ────────────────────────────────────────────────
+// 鈹€鈹€ merge 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function merge(people) {
   const m = {
     work: [], plan: [], premium: [],
@@ -543,28 +1092,19 @@ function merge(people) {
     channelWork: [], activity: [], training: [],
   };
   for (const p of people) {
-    // work/plan/premium: no names in output
     for (const item of p.work) m.work.push(item);
     for (const item of p.plan) m.plan.push(item);
     for (const item of p.premium) m.premium.push(item);
-
-    // excellent/improve: keep names for 点评 section
     if (p.excellent) m.excellent.push({ name: p.name, text: p.excellent });
     if (p.improve) m.improve.push({ name: p.name, text: p.improve });
-
-    // fan numbers
     m.fans.interview += p.fansInterview;
     m.fans.plan += p.fansPlan;
     m.fans.newFans += p.fansNew;
     m.fans.activeFans += p.fansActive;
     m.fans.highP += p.fansHighP;
-
-    // special numbers
     m.special.onlineToday += p.specialOnline;
     m.special.trainToday += p.specialTrain;
     m.special.actToday += p.specialAct;
-
-    // channel/activity/training: no names
     if (p.channelWork) m.channelWork.push(p.channelWork);
     if (p.activity) m.activity.push(p.activity);
     if (p.training) m.training.push(p.training);
@@ -572,7 +1112,7 @@ function merge(people) {
   return m;
 }
 
-// ── render report ───────────────────────────────────────
+// 鈹€鈹€ render report 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function render(s, people, m) {
   const dateCode = s.date.replace(/\./g,"");
   const ml = s.monthLabel;
@@ -583,101 +1123,84 @@ function render(s, people, m) {
   const planItems = unique(m.plan);
   const premiumItems = unique(m.premium);
 
-  // excellent: format as "名字；亮点内容"
-  const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("、");
-  const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("；");
+  const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("銆?);
+  const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("锛?);
   const excellent = m.excellent.length
-    ? `${excellentNames}；${excellentTexts}`
-    : `${people.map(p=>p.name).join("、")}；工作推进正常`;
+    ? `${excellentNames}锛?{excellentTexts}`
+    : `${people.map(p=>p.name).join("銆?)}锛涘伐浣滄帹杩涙甯竊;
 
-  const improveNames = m.improve.map(e => e.name).filter(onlyUnique).join("、");
-  const improveTexts = m.improve.map(e => e.text).filter(onlyUnique).join("；");
-  const improve = m.improve.length ? `${improveNames}；${improveTexts}` : "无";
+  const improveNames = m.improve.map(e => e.name).filter(onlyUnique).join("銆?);
+  const improveTexts = m.improve.map(e => e.text).filter(onlyUnique).join("锛?);
+  const improve = m.improve.length ? `${improveNames}锛?{improveTexts}` : "鏃?;
 
-  const channel = unique(m.channelWork).join("、") || "无";
-  const activity = unique(m.activity).join("、") || "无";
-  const training = unique(m.training).join("、") || "无";
-  const workContent = workItems.length ? numberLines(workItems) : ["无"];
-  const planContent = planItems.length ? numberLines(planItems) : ["无"];
-  const premiumContent = premiumItems.length ? premiumItems : ["暂无"];
+  const channel = unique(m.channelWork).join("銆?) || "鏃?;
+  const activity = unique(m.activity).join("銆?) || "鏃?;
+  const training = unique(m.training).join("銆?) || "鏃?;
+  const workContent = workItems.length ? numberLines(workItems) : ["鏃?];
+  const planContent = planItems.length ? numberLines(planItems) : ["鏃?];
+  const premiumContent = premiumItems.length ? premiumItems : ["鏆傛棤"];
 
   return [
-    "一、",
-    "",
-    `【${dateCode}多元汇报】`,
-    "",
-    "一、目标进度",
-    `今日预收${fmt(s.todayPresale)}万p，今日承保${fmt(s.todayUnderwrite)}万p；${ml}累计预收${fmt(s.monthPresale)}万p，承保${fmt(s.monthUnderwrite)}万p；`,
-    `${ml}活动人力目标${fmt(s.activityTarget)}人，达成${fmt(s.activityDone)}人；有效渠道目标${fmt(s.channelTarget)}个，达成${fmt(s.channelDone)}个。`,
-    `${ml}目标${fmt(s.monthTarget)}万，任务达成${completion}`,
-    "",
-    "二、今日工作总结：",
-    ...workContent,
-    "",
-    "三、明日工作计划：",
-    ...planContent,
-    "",
-    "三、明日保费预估：",
-    ...premiumContent,
-    "",
-    "",
-    "二、",
-    "",
-    `四川分多元日报${dateCode}`,
-    "",
-    "一、【泰有鑫意品宣推动及业绩情况】",
-    "（一）品宣",
-    "1.泰有鑫意今日品宣：",
-    `线上${fmt(m.special.onlineToday)}篇，`,
-    `线下培训${fmt(m.special.trainToday)}场，线下活动${fmt(m.special.actToday)}场`,
-    "2.泰有鑫意本月累计品宣：",
-    `线上${fmt(s.onlineMonth)}篇，`,
-    `线下培训${fmt(s.offlineTrainingMonth)}场，线下活动${fmt(s.offlineActivityMonth)}场`,
-    "（二）业绩",
-    `1.泰有鑫意本月目标：${fmt(s.specialTarget)}`,
-    `2.泰有鑫意今日受理业绩P：${fmt(s.specialToday)}`,
-    `3.泰有鑫意当月累计业绩P：${fmt(s.specialMonth)}`,
-    `4.距离目标差额：${fmt(specialGap)}`,
-    "",
-    "二、【今日主要工作汇报】",
-    `1.渠道经营：${channel}`,
-    `2.活动赋能：${activity}`,
-    `3.培训辅导：${training}`,
-    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、新增活粉人数${fmt(m.fans.activeFans)}人（累计${fmt(s.monthActiveFans)}人）、新增高P粉人数${fmt(m.fans.highP)}人（累计${fmt(s.monthHighPFans)}人）。`,
-    "",
-    "三、【部总每日对下属点评】",
-    `1. 今日表现优秀人员及亮点：${excellent}`,
-    `2. 需改进人员及建议措施：${improve}`,
-    "",
-    "四、【明日工作规划】",
-    `1.明日重点工作：${planItems.join("、")}`,
-    `2.培训：${makeItem(planItems, ["培训","宣导"])}`,
-    `3.活动：${makeItem(planItems, ["活动","沙龙"])}`,
-    "",
-    "",
-    "三、",
-    "",
-    `【${s.date}日多元汇报】今日预收${fmt(s.todayPresale)}万P，本月累计预收${fmt(s.monthPresale)}万P，累计承保${fmt(s.monthUnderwrite)}万P；明日预估${fmt(s.tomorrowEstimate)}万P`,
+    "涓€銆?, "",
+    `銆?{dateCode}澶氬厓姹囨姤銆慲, "",
+    "涓€銆佺洰鏍囪繘搴?,
+    `浠婃棩棰勬敹${fmt(s.todayPresale)}涓噋锛屼粖鏃ユ壙淇?{fmt(s.todayUnderwrite)}涓噋锛?{ml}绱棰勬敹${fmt(s.monthPresale)}涓噋锛屾壙淇?{fmt(s.monthUnderwrite)}涓噋锛沗,
+    `${ml}娲诲姩浜哄姏鐩爣${fmt(s.activityTarget)}浜猴紝杈炬垚${fmt(s.activityDone)}浜猴紱鏈夋晥娓犻亾鐩爣${fmt(s.channelTarget)}涓紝杈炬垚${fmt(s.channelDone)}涓€俙,
+    `${ml}鐩爣${fmt(s.monthTarget)}涓囷紝浠诲姟杈炬垚${completion}`,
+    "", "浜屻€佷粖鏃ュ伐浣滄€荤粨锛?, ...workContent,
+    "", "涓夈€佹槑鏃ュ伐浣滆鍒掞細", ...planContent,
+    "", "涓夈€佹槑鏃ヤ繚璐归浼帮細", ...premiumContent,
+    "", "", "浜屻€?, "",
+    `鍥涘窛鍒嗗鍏冩棩鎶?{dateCode}`, "",
+    "涓€銆併€愭嘲鏈夐懌鎰忓搧瀹ｆ帹鍔ㄥ強涓氱哗鎯呭喌銆?,
+    "锛堜竴锛夊搧瀹?,
+    "1.娉版湁閼剰浠婃棩鍝佸锛?,
+    `绾夸笂${fmt(m.special.onlineToday)}绡囷紝`,
+    `绾夸笅鍩硅${fmt(m.special.trainToday)}鍦猴紝绾夸笅娲诲姩${fmt(m.special.actToday)}鍦篳,
+    "2.娉版湁閼剰鏈湀绱鍝佸锛?,
+    `绾夸笂${fmt(s.onlineMonth)}绡囷紝`,
+    `绾夸笅鍩硅${fmt(s.offlineTrainingMonth)}鍦猴紝绾夸笅娲诲姩${fmt(s.offlineActivityMonth)}鍦篳,
+    "锛堜簩锛変笟缁?,
+    `1.娉版湁閼剰鏈湀鐩爣锛?{fmt(s.specialTarget)}`,
+    `2.娉版湁閼剰浠婃棩鍙楃悊涓氱哗P锛?{fmt(s.specialToday)}`,
+    `3.娉版湁閼剰褰撴湀绱涓氱哗P锛?{fmt(s.specialMonth)}`,
+    `4.璺濈鐩爣宸锛?{fmt(specialGap)}`,
+    "", "浜屻€併€愪粖鏃ヤ富瑕佸伐浣滄眹鎶ャ€?,
+    `1.娓犻亾缁忚惀锛?{channel}`,
+    `2.娲诲姩璧嬭兘锛?{activity}`,
+    `3.鍩硅杈呭锛?{training}`,
+    `4.绮変笣缁忚惀锛氫粖鏃ュ畬鎴愭湁鏁堥潰璋堜汉鏁?{fmt(m.fans.interview)}浜恒€佽鍒掍功閫掗€佷唤鏁?{fmt(m.fans.plan)}浜恒€佹柊澧炵矇涓濅汉鏁?{fmt(m.fans.newFans)}浜恒€佹柊澧炴椿绮変汉鏁?{fmt(m.fans.activeFans)}浜猴紙绱${fmt(s.monthActiveFans)}浜猴級銆佹柊澧為珮P绮変汉鏁?{fmt(m.fans.highP)}浜猴紙绱${fmt(s.monthHighPFans)}浜猴級銆俙,
+    "", "涓夈€併€愰儴鎬绘瘡鏃ュ涓嬪睘鐐硅瘎銆?,
+    `1. 浠婃棩琛ㄧ幇浼樼浜哄憳鍙婁寒鐐癸細${excellent}`,
+    `2. 闇€鏀硅繘浜哄憳鍙婂缓璁帾鏂斤細${improve}`,
+    "", "鍥涖€併€愭槑鏃ュ伐浣滆鍒掋€?,
+    `1.鏄庢棩閲嶇偣宸ヤ綔锛?{planItems.join("銆?)}`,
+    `2.鍩硅锛?{makeItem(planItems, ["鍩硅","瀹ｅ"])}`,
+    `3.娲诲姩锛?{makeItem(planItems, ["娲诲姩","娌欓緳"])}`,
+    "", "", "涓夈€?, "",
+    `銆?{s.date}鏃ュ鍏冩眹鎶ャ€戜粖鏃ラ鏀?{fmt(s.todayPresale)}涓嘝锛屾湰鏈堢疮璁￠鏀?{fmt(s.monthPresale)}涓嘝锛岀疮璁℃壙淇?{fmt(s.monthUnderwrite)}涓嘝锛涙槑鏃ラ浼?{fmt(s.tomorrowEstimate)}涓嘝`,
   ].join("\n");
 }
 
-// ── generator ───────────────────────────────────────────
+// 鈹€鈹€ generator 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function generate() {
   const s = getSummary();
   const people = getPeople().filter(p => p.work.length || p.plan.length || p.premium.length || p.excellent || p.improve);
   const m = merge(people);
   $("#result").value = render(s, people, m);
+  autoSave();
 }
 
-// ── copy / download ─────────────────────────────────────
+// 鈹€鈹€ copy / download 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 async function copyResult() {
   const text = $("#result").value;
   if (!text.trim()) return;
-  await navigator.clipboard.writeText(text);
-  const b = $("#copyBtn");
-  const prev = b.textContent;
-  b.textContent = "✓ 已复制";
-  setTimeout(() => b.textContent = prev, 1200);
+  try {
+    await navigator.clipboard.writeText(text);
+    const b = $("#copyBtn"), prev = b.textContent;
+    b.textContent = "鉁?宸插鍒?;
+    setTimeout(() => b.textContent = prev, 1200);
+  } catch (e) { showToast('澶嶅埗澶辫触锛岃鎵嬪姩閫夋嫨澶嶅埗', 'error'); }
 }
 
 function downloadResult() {
@@ -685,24 +1208,58 @@ function downloadResult() {
   if (!text.trim()) return;
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = E("a", { href: url, download: `每日汇报_${new Date().toISOString().slice(0,10)}.txt` });
-  a.click();
-  a.remove();
+  const a = E("a", { href: url, download: `姣忔棩姹囨姤_${new Date().toISOString().slice(0,10)}.txt` });
+  a.click(); a.remove();
   URL.revokeObjectURL(url);
 }
 
-// ── samples ─────────────────────────────────────────────
+// 鈹€鈹€ export / import JSON 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+function exportJSON() {
+  const data = collectAllData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = E("a", {
+    href: url,
+    download: `daily-report-backup-${$('#reportDate').value || new Date().toISOString().slice(0,10)}.json`
+  });
+  a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  showToast('鉁?澶囦唤鏂囦欢宸蹭笅杞?, 'success');
+}
+
+function importJSON() {
+  $('#importFile').value = '';
+  $('#importFile').click();
+}
+
+async function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    applyDataToForm(data);
+    syncToDOM();
+    saveToLocalStorage();
+    if (fileHandle) await writeToFileNow(fileHandle);
+    showToast('鉁?鏁版嵁宸叉仮澶?, 'success');
+  } catch (err) {
+    showToast('瀵煎叆澶辫触锛岃妫€鏌ユ枃浠舵牸寮?, 'error');
+  }
+}
+
+// 鈹€鈹€ samples 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const SAMPLES = [
-  { name:"李红霞", work:["明亚渠道驻点沟通","泰有鑫意一对一宣导，跟进高P线索2个"], channelWork:"明亚、保通驻点", fansInterview:12, fansPlan:2, fansNew:3, excellent:"泰有鑫意有线索", plan:["明亚驻点","线索落地追踪"], premium:["明亚:泰给利5万趸"] },
-  { name:"钟华", work:["大童绩优沟通交流","大童高端渠道经营"], channelWork:"大童、年丰", fansInterview:10, fansPlan:2, fansNew:2, fansActive:1, excellent:"绩优粉丝与内勤深度沟通", plan:["大童驻点","绩优伙伴产品沟通"], premium:["大童:泰赢家20万3年"] },
-  { name:"刘杰", work:["保通泰有鑫意自媒体培训及推动","泰有鑫意线上品宣0篇，线下培训0场"], training:"保通自媒体培训", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意一对一推动须加快", plan:["保通泰有鑫意客户沙龙","泰给利客户沙龙"], premium:["京东:泰给利10万趸"] },
-  { name:"朱中国", work:["年丰、泛华驻点","客户沙龙邀约"], channelWork:"年丰、泛华", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意推动节奏需加快", plan:["恒邦630冲刺培训","宝瑞泰有鑫意线上培训","年丰吴婷瑶团队产品培训"] },
+  { name:"鏉庣孩闇?, work:["鏄庝簹娓犻亾椹荤偣娌熼€?,"娉版湁閼剰涓€瀵逛竴瀹ｅ锛岃窡杩涢珮P绾跨储2涓?], channelWork:"鏄庝簹銆佷繚閫氶┗鐐?, fansInterview:12, fansPlan:2, fansNew:3, excellent:"娉版湁閼剰鏈夌嚎绱?, plan:["鏄庝簹椹荤偣","绾跨储钀藉湴杩借釜"], premium:["鏄庝簹:娉扮粰鍒?涓囪陡"] },
+  { name:"閽熷崕", work:["澶х缁╀紭娌熼€氫氦娴?,"澶х楂樼娓犻亾缁忚惀"], channelWork:"澶х銆佸勾涓?, fansInterview:10, fansPlan:2, fansNew:2, fansActive:1, excellent:"缁╀紭绮変笣涓庡唴鍕ゆ繁搴︽矡閫?, plan:["澶х椹荤偣","缁╀紭浼欎即浜у搧娌熼€?], premium:["澶х:娉拌耽瀹?0涓?骞?] },
+  { name:"鍒樻澃", work:["淇濋€氭嘲鏈夐懌鎰忚嚜濯掍綋鍩硅鍙婃帹鍔?,"娉版湁閼剰绾夸笂鍝佸0绡囷紝绾夸笅鍩硅0鍦?], training:"淇濋€氳嚜濯掍綋鍩硅", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"娉版湁閼剰涓€瀵逛竴鎺ㄥ姩椤诲姞蹇?, plan:["淇濋€氭嘲鏈夐懌鎰忓鎴锋矙榫?,"娉扮粰鍒╁鎴锋矙榫?], premium:["浜笢:娉扮粰鍒?0涓囪陡"] },
+  { name:"鏈变腑鍥?, work:["骞翠赴銆佹硾鍗庨┗鐐?,"瀹㈡埛娌欓緳閭€绾?], channelWork:"骞翠赴銆佹硾鍗?, fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"娉版湁閼剰鎺ㄥ姩鑺傚闇€鍔犲揩", plan:["鎭掗偊630鍐插埡鍩硅","瀹濈憺娉版湁閼剰绾夸笂鍩硅","骞翠赴鍚村┓鐟跺洟闃熶骇鍝佸煿璁?] },
 ];
 
 function fillSample() {
   for (let i = 0; i < 4; i++) {
     const s = SAMPLES[i];
-    const card = document.querySelectorAll(".person-card")[i];
+    const card = $$(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = s.name;
     personData[i].name = s.name;
@@ -723,98 +1280,110 @@ function fillSample() {
       personData[i][f.id] = typeof val === "string" ? val : String(val);
     }
     card.querySelector(".person-body").style.display = "";
-    card.querySelector(".toggle-btn").textContent = "收起";
+    card.querySelector(".toggle-btn").textContent = "鏀惰捣";
   }
   generate();
 }
 
-// ── clear ───────────────────────────────────────────────
+// 鈹€鈹€ clear 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function clearAll() {
-  // Clear localStorage
-  clearStorage();
-  // Clear summary fields
   const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
-  summaryIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  // Clear person cards
+  summaryIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   for (let i = 0; i < 4; i++) {
-    const card = document.querySelectorAll(".person-card")[i];
+    const card = $$(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = DEFAULT_NAMES[i];
     personData[i].name = DEFAULT_NAMES[i];
     for (const f of PERSON_FIELDS) {
       const el = card.querySelector(`#p${i}_${f.id}`);
-      if (!el) continue;
-      el.value = "";
-      personData[i][f.id] = "";
+      if (el) { el.value = ""; personData[i][f.id] = ""; }
     }
   }
   $("#result").value = "";
-  // Save cleared state
-  saveToStorage();
+  localStorage.removeItem(STORAGE_KEY);
+  if (fileHandle) writeToFileNow(fileHandle);
+  showToast('宸叉竻绌烘墍鏈夋暟鎹?, 'success');
 }
 
-// ── utilities ───────────────────────────────────────────
+// 鈹€鈹€ utilities 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function n(v) { return Number(v || 0); }
 function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
-function splitPair(v) {
-  const nums = String(v).match(/\d+(?:\.\d+)?/g) || [];
-  return [n(nums[0]), n(nums[1])];
-}
-function numberLines(items) {
-  return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"];
-}
-function makeItem(items, keywords) {
-  const matched = items.filter(it => keywords.some(k => it.includes(k)));
-  return matched.length ? matched.join("、") : "无";
-}
-function unique(items) {
-  return [...new Set(items.map(it => it.trim()).filter(Boolean))];
-}
+function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
+function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}銆?{item}`) : ["鏃?]; }
+function makeItem(items, keywords) { const matched = items.filter(it => keywords.some(k => it.includes(k))); return matched.length ? matched.join("銆?) : "鏃?; }
+function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Boolean))]; }
 
-// ── collapse all ────────────────────────────────────────
+// 鈹€鈹€ collapse all 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function collapseAll() {
   $$(".person-card").forEach(card => {
     const body = card.querySelector(".person-body");
     const btn = card.querySelector(".toggle-btn");
-    if (body.style.display !== "none") {
-      body.style.display = "none";
-      btn.textContent = "展开";
-    }
+    if (body.style.display !== "none") { body.style.display = "none"; btn.textContent = "灞曞紑"; }
   });
 }
 
-// ── init ────────────────────────────────────────────────
-function init() {
+// 鈹€鈹€ init 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+async function init() {
   buildCards();
-  // Try to load saved data
-  const hasData = loadFromStorage();
-  // If loaded data, populate the form fields
-  if (hasData) {
-    for (let i = 0; i < 4; i++) {
-      const card = document.querySelectorAll(".person-card")[i];
-      if (!card) continue;
-      card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
-      for (const f of PERSON_FIELDS) {
-        const el = card.querySelector(`#p${i}_${f.id}`);
-        if (el) el.value = personData[i][f.id] || '';
+  checkFileAPI();
+
+  // 1. Try file handle from IndexedDB
+  if (hasFileAPI) {
+    const handle = await recallFileHandle();
+    if (handle) {
+      const permOk = await verifyHandlePermission(handle);
+      if (permOk) {
+        const fileData = await readFromFile(handle);
+        if (fileData) {
+          fileHandle = handle;
+          applyDataToForm(fileData);
+          saveToLocalStorage(); // mirror
+        }
       }
     }
   }
+
+  // 2. Fallback: localStorage
+  if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
+    // First visit: load defaults
+    $('#reportDate').value = '6.11';
+    $('#monthLabel').value = '6鏈?;
+  }
+  const loaded = loadFromLocalStorage();
+
+  // 3. Sync DOM
+  syncToDOM();
+
+  updateStatusBar();
   attachSummaryAutoSave();
-  $("#generateBtn").addEventListener("click", () => { generate(); saveToStorage(); });
+  startFlashInterval();
+
+  // Buttons
+  $("#generateBtn").addEventListener("click", generate);
   $("#copyBtn").addEventListener("click", copyResult);
   $("#downloadBtn").addEventListener("click", downloadResult);
-  $("#sampleBtn").addEventListener("click", () => { fillSample(); saveToStorage(); });
+  $("#sampleBtn").addEventListener("click", fillSample);
   $("#clearBtn").addEventListener("click", clearAll);
   $("#collapseAll").addEventListener("click", collapseAll);
-}
-document.addEventListener("DOMContentLoaded", init);
+  $("#pickFileBtn").addEventListener("click", pickSaveFile);
+  $("#exportBtn").addEventListener("click", exportJSON);
+  $("#importBtn").addEventListener("click", importJSON);
+  $("#importFile").addEventListener("change", handleImportFile);
 
+  // beforeunload: final save
+  window.addEventListener('beforeunload', () => {
+    saveToLocalStorage();
+  });
+
+  // Periodic safety save (every 15 seconds)
+  setInterval(() => {
+    if (localStorage.getItem(STORAGE_KEY)) saveToLocalStorage();
+  }, 15000);
+}
+
+document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
