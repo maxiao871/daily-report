@@ -302,6 +302,76 @@ button.paste-btn:hover { background: #fff8e7; }
 /* hide file input */
 #importFile { display: none; }
 
+/* global paste section */
+.paste-section {
+  border: 1px solid var(--paste-border);
+  border-radius: var(--radius);
+  background: var(--paste-bg);
+  margin-bottom: 14px;
+}
+.paste-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--paste-border);
+  background: #fef8e4;
+}
+.paste-section-header h2 { font-size: 14px; margin: 0; }
+.paste-section-body { padding: 14px; }
+.paste-section-body.collapsed { display: none; }
+.paste-section-body .paste-hint {
+  font-size: 12px;
+  color: #8b6914;
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+.paste-section-body .paste-hint code {
+  background: #fef3d0;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+.paste-section-body textarea {
+  width: 100%;
+  min-height: 160px;
+  border: 1px solid var(--paste-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  background: #fffdf5;
+  outline: none;
+  margin-bottom: 10px;
+}
+.paste-section-body textarea:focus {
+  border-color: #d4a017;
+  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12);
+}
+.paste-section-body .paste-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.paste-section-body .paste-actions button {
+  height: 32px;
+  font-size: 13px;
+  padding: 0 16px;
+  border-color: #b8860b;
+  background: #b8860b;
+  color: #fff;
+}
+.paste-section-body .paste-actions button:hover { background: #9a7209; }
+.paste-section-body .paste-actions button.secondary { background: #fff; color: #b8860b; }
+.paste-section-body .paste-msg {
+  font-size: 12px;
+  color: var(--success);
+  margin-left: 8px;
+  display: none;
+}
+
 /* result */
 .result-section {
   border: 1px solid var(--line);
@@ -431,6 +501,25 @@ button.paste-btn:hover { background: #fff8e7; }
       <button id="collapseAll" type="button" class="secondary small">全部折叠</button>
     </div>
     <div class="person-grid" id="personGrid"></div>
+  </section>
+
+  <section class="paste-section" id="globalPasteSection">
+    <div class="paste-section-header">
+      <h2>📋 粘贴区</h2>
+      <button id="toggleGlobalPaste" type="button" class="secondary small">收起</button>
+    </div>
+    <div class="paste-section-body" id="globalPasteBody">
+      <div class="paste-hint">
+        💡 把伙伴发来的汇报文字粘进来，点击「解析填充」自动填入上方对应区域。<br>
+        支持：<code>名字：</code>区分多人 / <code>键：值</code> / 自由文本（自动识别数字）
+      </div>
+      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意一对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效面谈人数：10&#10;……"></textarea>
+      <div class="paste-actions">
+        <button id="globalPasteParseBtn" type="button">🔳 解析填充</button>
+        <button id="globalPasteClearBtn" type="button" class="secondary">清空粘贴区</button>
+        <span class="paste-msg" id="globalPasteMsg"></span>
+      </div>
+    </div>
   </section>
 
   <section class="result-section">
@@ -924,6 +1013,114 @@ function fillPersonFromData(personIdx, data) {
   autoSave();
 }
 
+// ── Global paste parser (multi-person) ───────────────────
+function parseGlobalPaste(raw) {
+  const text = raw.trim();
+  if (!text) return [];
+
+  // Try to split by person delimiters: 1. / 一、/ 伙伴1：/ 姓名：
+  // Also handle numbered patterns like "1. 李红霞" or free text chunks
+  const personChunks = [];
+
+  // Pattern 1: Explicit person headers like "伙伴1：" "1." "一、"
+  const headerSplit = text.split(/\n(?=(?:伙伴)?[1-4][。、.：:)])|\n(?=[一二三四][、。.])|\n(?=\d[、.．]\s*\S{2,4}\n)/);
+
+  if (headerSplit.length > 1) {
+    for (const chunk of headerSplit) {
+      if (chunk.trim()) personChunks.push(chunk.trim());
+    }
+  } else {
+    // Pattern 2: Split by double newlines (each block is a person)
+    const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
+    if (blocks.length >= 2 && blocks.length <= 4) {
+      for (const b of blocks) personChunks.push(b.trim());
+    } else {
+      // Pattern 3: Look for name lines as delimiters
+      const namePattern = /(?:^|\n)([^\n]{2,4})(?:：|:)?\s*\n/g;
+      let lastIdx = 0;
+      let lastPerson = '';
+      let match;
+      const parts = [];
+      while ((match = namePattern.exec(text)) !== null) {
+        if (lastIdx > 0) parts.push(text.slice(lastIdx, match.index).trim());
+        lastIdx = match.index;
+      }
+      if (lastIdx > 0) parts.push(text.slice(lastIdx).trim());
+      if (parts.length >= 2 && parts.length <= 4) {
+        for (const p of parts) personChunks.push(p);
+      }
+    }
+  }
+
+  // If still no split, treat the whole thing as one person's data (fill person 1 only)
+  if (personChunks.length === 0) personChunks.push(text);
+
+  // Parse each chunk and map to person index
+  const results = [];
+  for (let i = 0; i < Math.min(personChunks.length, 4); i++) {
+    const data = parsePasteText(personChunks[i], i);
+    if (Object.keys(data).length > 0) {
+      results.push({ idx: i, data: data });
+    } else {
+      results.push({ idx: i, data: { work: personChunks[i] } });
+    }
+  }
+  return results;
+}
+
+function initGlobalPaste() {
+  // Toggle collapse
+  const toggleBtn = $('#toggleGlobalPaste');
+  const body = $('#globalPasteBody');
+  toggleBtn.addEventListener('click', () => {
+    const collapsed = body.classList.toggle('collapsed');
+    toggleBtn.textContent = collapsed ? '展开' : '收起';
+  });
+
+  // Parse button
+  $('#globalPasteParseBtn').addEventListener('click', () => {
+    const raw = $('#globalPasteArea').value.trim();
+    if (!raw) { showToast('请先粘贴内容', 'error'); return; }
+
+    const results = parseGlobalPaste(raw);
+    let totalFields = 0;
+
+    for (const r of results) {
+      fillPersonFromData(r.idx, r.data);
+      totalFields += Object.keys(r.data).filter(k => r.data[k] !== undefined && r.data[k] !== '').length;
+    }
+
+    const msg = $('#globalPasteMsg');
+    msg.style.display = 'inline';
+    msg.textContent = '✓ 已解析填充 ' + results.length + ' 人，共 ' + totalFields + ' 个字段';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  });
+
+  // Clear button
+  $('#globalPasteClearBtn').addEventListener('click', () => {
+    $('#globalPasteArea').value = '';
+  });
+
+  // Auto-save paste area content
+  $('#globalPasteArea').addEventListener('input', autoSave);
+
+  // Store/restore paste area content in collectAllData
+  const origCollect = collectAllData;
+  collectAllData = function() {
+    const data = origCollect();
+    data.pasteAreaContent = $('#globalPasteArea').value;
+    return data;
+  };
+
+  const origApply = applyDataToForm;
+  applyDataToForm = function(data) {
+    origApply(data);
+    if (data.pasteAreaContent) {
+      $('#globalPasteArea').value = data.pasteAreaContent;
+    }
+  };
+}
+
 // ── build person cards ──────────────────────────────────
 function buildCards() {
   const grid = document.getElementById("personGrid");
@@ -1376,6 +1573,8 @@ async function init() {
   window.addEventListener('beforeunload', () => {
     saveToLocalStorage();
   });
+
+  initGlobalPaste();
 
   // Periodic safety save (every 15 seconds)
   setInterval(() => {
