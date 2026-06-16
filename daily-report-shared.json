@@ -32,9 +32,9 @@
       "fansNew": "1",
       "fansActive": "1",
       "fansHighP": "",
-      "specialOnline": "",
-      "specialTrain": "",
-      "specialAct": "",
+      "specialOnline": "2",
+      "specialTrain": "0",
+      "specialAct": "0",
       "excellent": "",
       "improve": "",
       "plan": "",
@@ -99,6 +99,6 @@
     }
   ],
   "result": "",
-  "savedAt": "2026-06-16T06:59:44.467Z",
+  "savedAt": "2026-06-16T06:59:53.455Z",
   "pasteAreaContent": ""
 }
