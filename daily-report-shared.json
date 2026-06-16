@@ -27,10 +27,10 @@
       "channelWork": "保通",
       "activity": "",
       "training": "",
-      "fansInterview": "",
-      "fansPlan": "",
-      "fansNew": "",
-      "fansActive": "",
+      "fansInterview": "6",
+      "fansPlan": "1",
+      "fansNew": "1",
+      "fansActive": "1",
       "fansHighP": "",
       "specialOnline": "",
       "specialTrain": "",
@@ -99,6 +99,6 @@
     }
   ],
   "result": "",
-  "savedAt": "2026-06-16T06:59:36.401Z",
+  "savedAt": "2026-06-16T06:59:44.467Z",
   "pasteAreaContent": ""
 }
