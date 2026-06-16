@@ -41,7 +41,7 @@
       "premium": ""
     },
     {
-      "name": "伙伴2",
+      "name": "李红霞",
       "work": "",
       "channelWork": "",
       "activity": "",
@@ -60,7 +60,7 @@
       "premium": ""
     },
     {
-      "name": "伙伴3",
+      "name": "朱中国",
       "work": "",
       "channelWork": "",
       "activity": "",
@@ -79,7 +79,7 @@
       "premium": ""
     },
     {
-      "name": "伙伴4",
+      "name": "",
       "work": "",
       "channelWork": "",
       "activity": "",
@@ -99,6 +99,6 @@
     }
   ],
   "result": "",
-  "savedAt": "2026-06-16T07:03:28.684Z",
+  "savedAt": "2026-06-16T07:03:44.563Z",
   "pasteAreaContent": ""
 }
