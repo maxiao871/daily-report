@@ -1426,7 +1426,7 @@ function render(s, people, m) {
     `1. 今日表现优秀人员及亮点：${excellent}`,
     `2. 需改进人员及建议措施：${improve}`,
     "", "四、【明日工作规划】",
-    `1.明日重点工作：${planItems.join("、")}`,
+    `1.明日重点工作：${filterTomorrowPlan(planItems)}`,
     `2.培训：${makeItem(planItems, ["培训","宣导"])}`,
     `3.活动：${makeItem(planItems, ["活动","沙龙"])}`,
     "", "", "三、", "",
@@ -1559,6 +1559,7 @@ function clearAll() {
 
 // ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
+function filterTomorrowPlan(items) { const kw = ["驻点","培训","活动","宣导","沙龙",...TOMORROW_KEYWORDS]; return items.filter(it => kw.some(k => it.includes(k))).join("，") || "无"; }
 function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
@@ -1566,6 +1567,17 @@ function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; re
 function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"]; }
 function makeItem(items, keywords) { const matched = items.filter(it => keywords.some(k => it.includes(k))); return matched.length ? matched.join("、") : "无"; }
 function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Boolean))]; }
+// 明日重点工作：仅保留渠道名称 + 驻点/培训/活动
+const TOMORROW_KEYWORDS = ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"];
+
+// 过滤明日重点工作：仅保留渠道名/驻点/培训/活动
+function filterTomorrowPlan(items) {
+  const keywords = ["驻点","培训","宣导","活动","沙龙","启动","推动","追踪","复盘"];
+  const filtered = items.filter(it => {
+    return TOMORROW_KEYWORDS.some(k => it.includes(k)) || keywords.some(k => it.includes(k));
+  });
+  return filtered.length ? filtered.join("、") : "待定";
+}
 
 // ── collapse all ────────────────────────────────────────
 function collapseAll() {
