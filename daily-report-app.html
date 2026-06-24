@@ -848,8 +848,6 @@ function collectAllData() {
       return r;
     }),
     result: $('#result').value,
-    todayActiveFans: $('#todayActiveFans').value,
-    todayHighPFans: $('#todayHighPFans').value,
     savedAt: new Date().toISOString()
   };
 }
@@ -1276,7 +1274,7 @@ function buildCards() {
 
 // ── attach summary + result auto-save ───────────────────
 function attachSummaryAutoSave() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans','todayActiveFans','todayHighPFans'];
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'].concat(['todayActiveFans','todayHighPFans']);
   summaryIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', autoSave);
@@ -1325,6 +1323,7 @@ function getPeople() {
     fansInterview: n(p.fansInterview),
     fansPlan: n(p.fansPlan),
     fansNew: n(p.fansNew),
+
     specialOnline: n(p.specialOnline),
     specialTrain: n(p.specialTrain),
     specialAct: n(p.specialAct),
@@ -1353,6 +1352,7 @@ function merge(people) {
     m.fans.interview += p.fansInterview;
     m.fans.plan += p.fansPlan;
     m.fans.newFans += p.fansNew;
+
     m.special.onlineToday += p.specialOnline;
     m.special.trainToday += p.specialTrain;
     m.special.actToday += p.specialAct;
@@ -1420,7 +1420,7 @@ function render(s, people, m) {
     `1.渠道经营：${channel}`,
     `2.活动赋能：${activity}`,
     `3.培训辅导：${training}`,
-    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、新增活粉人数${fmt(s.todayActiveFans)}人（累计${fmt(s.monthActiveFans)}人）、新增高P粉人数${fmt(s.todayHighPFans)}人（累计${fmt(s.monthHighPFans)}人）。`,
+    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、今日新增活粉人数${fmt(s.todayActiveFans)}人（本月累计${fmt(s.monthActiveFans)}人）、今日新增高P粉人数${fmt(s.todayHighPFans)}人（本月累计${fmt(s.monthHighPFans)}人）。`,
     "", "三、【部总每日对下属点评】",
     `1. 今日表现优秀人员及亮点：${excellent}`,
     `2. 需改进人员及建议措施：${improve}`,
@@ -1538,7 +1538,7 @@ function fillSample() {
 
 // ── clear ───────────────────────────────────────────────
 function clearAll() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans','todayActiveFans','todayHighPFans'];
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   for (let i = 0; i < 4; i++) {
     const card = $$(".person-card")[i];
@@ -1593,10 +1593,7 @@ let cloudLastKnownSHA = null;
 let cloudHasChanges = false; // flag: form data changed since last cloud save
 
 function getCloudToken() {
-  if (!cloudToken) {
-    try { cloudToken = localStorage.getItem(CLOUD_TOKEN_KEY); }
-    catch(e) { cloudToken = null; }
-  }
+  if (!cloudToken) cloudToken = localStorage.getItem(CLOUD_TOKEN_KEY);
   return cloudToken;
 }
 
@@ -1642,9 +1639,6 @@ async function cloudAPI(method, path, body) {
   return res.json();
 }
 
-let cloudConsecutiveFails = 0;
-const CLOUD_MAX_FAILS = 5;
-
 async function loadFromCloud() {
   const token = getCloudToken();
   if (!token) return null;
@@ -1652,18 +1646,16 @@ async function loadFromCloud() {
     const data = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
     if (!data) return null;
     cloudFileSHA = data.sha;
+    // Update last known SHA to detect real changes
     if (cloudLastKnownSHA === null) cloudLastKnownSHA = data.sha;
-    cloudConsecutiveFails = 0;
     const bytes = atob(data.content);
     return JSON.parse(decodeURIComponent(escape(bytes)));
   } catch (e) {
-    cloudConsecutiveFails++;
     if (e.message === 'TOKEN_INVALID') {
-      clearCloudToken();
-      updateStatusBar();
-      showToast('☁️ 团队同步已断开（Token 失效），请重新连接', 'error');
+      showToast('团队同步 Token 无效，请重新设置', 'error');
+      return null;
     }
-    return null;
+    return null; // network errors are silent
   }
 }
 
@@ -1684,19 +1676,13 @@ async function saveToCloud(data) {
     cloudFileSHA = result.content.sha;
     cloudLastKnownSHA = result.content.sha;
     cloudLastSyncTime = new Date();
-    cloudConsecutiveFails = 0;
     cloudSaving = false;
     cloudHasChanges = false;
     updateStatusBar();
     return true;
   } catch (e) {
     cloudSaving = false;
-    cloudConsecutiveFails++;
-    if (e.message === 'TOKEN_INVALID') {
-      clearCloudToken();
-      updateStatusBar();
-      showToast('☁️ 团队同步已断开（Token 失效），请重新连接', 'error');
-    }
+    console.warn('Cloud save failed:', e.message);
     return false;
   }
 }
@@ -1732,26 +1718,17 @@ function updateStatusBar() {
 
   const token = getCloudToken();
   if (token) {
-    if (cloudConsecutiveFails >= 3) {
-      dot.className = 'dot orange';
-      text.textContent = '☁️ 团队云同步连接中断（网络异常），自动重试中…';
+    dot.className = 'dot green';
+    if (fileHandle) {
+      text.innerHTML = '📁 自动同步至 <span class="file-name">' + fileHandle.name + '</span> + ☁️ 团队云同步';
     } else {
-      dot.className = 'dot green';
-      if (fileHandle) {
-        text.innerHTML = '📁 自动同步至 <span class="file-name">' + fileHandle.name + '</span> + ☁️ 团队云同步';
-      } else {
-        text.textContent = '☁️ 团队云同步已开启 — 团队成员数据实时共享';
-      }
+      text.textContent = '☁️ 团队云同步已开启 — 团队成员数据实时共享';
     }
     // Show cloud status
     if (cloudSaving) {
       cloudStatus.style.display = 'inline';
       cloudStatus.textContent = '☁️ 同步中…';
       cloudStatus.style.color = 'var(--warn)';
-    } else if (cloudConsecutiveFails >= 3) {
-      cloudStatus.style.display = 'inline';
-      cloudStatus.textContent = '☁️ 中断重试中…';
-      cloudStatus.style.color = '#e74c3c';
     } else if (cloudLastSyncTime) {
       cloudStatus.style.display = 'inline';
       cloudStatus.textContent = '☁️ 已同步 ' + cloudLastSyncTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -1860,7 +1837,6 @@ function setupSyncDialog() {
 
 async function startCloudPolling() {
   if (cloudPollingTimer) clearInterval(cloudPollingTimer);
-  cloudConsecutiveFails = 0;
   // Load cloud data immediately
   const cloudData = await loadFromCloud();
   if (cloudData && cloudData.savedAt) {
@@ -1870,17 +1846,12 @@ async function startCloudPolling() {
     cloudLastSyncTime = new Date();
     updateStatusBar();
   }
-  const cloudPollFn = async () => {
+  cloudPollingTimer = setInterval(async () => {
     const token = getCloudToken();
-    if (!token) {
-      clearInterval(cloudPollingTimer);
-      cloudPollingTimer = null;
-      return;
-    }
+    if (!token) { clearInterval(cloudPollingTimer); return; }
     try {
       const meta = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
       if (!meta) return;
-      cloudConsecutiveFails = 0;
       // If SHA changed and form has no unsaved changes, pull
       if (cloudLastKnownSHA && meta.sha !== cloudLastKnownSHA && !cloudHasChanges) {
         const fresh = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
@@ -1897,38 +1868,8 @@ async function startCloudPolling() {
           showToast('📥 收到队友更新，已同步', 'success');
         }
       }
-      // Clear any reconnect indicator
-      const cloudStatus = $('#cloudStatus');
-      if (cloudStatus.style.color === 'rgb(231, 76, 60)') updateStatusBar();
-    } catch (e) {
-      cloudConsecutiveFails++;
-      if (e.message === 'TOKEN_INVALID') {
-        clearCloudToken();
-        updateStatusBar();
-        showToast('☁️ 团队同步已断开（Token 失效），请重新连接', 'error');
-        clearInterval(cloudPollingTimer);
-        cloudPollingTimer = null;
-        return;
-      }
-      // Show disconnect state after 3 consecutive failures
-      if (cloudConsecutiveFails >= 3) {
-        const cloudStatus = $('#cloudStatus');
-        cloudStatus.style.display = 'inline';
-        cloudStatus.textContent = '☁️ 连接中断，正在重试… (' + cloudConsecutiveFails + ')';
-        cloudStatus.style.color = '#e74c3c';
-        const dot = $('#statusDot');
-        dot.className = 'dot orange';
-        autoSave(); // save locally in case there are unsaved changes
-      }
-      // Backoff: slow down polling after many failures
-      if (cloudConsecutiveFails > CLOUD_MAX_FAILS) {
-        clearInterval(cloudPollingTimer);
-        cloudPollingTimer = setInterval(cloudPollFn, CLOUD_POLL_MS * 4);
-      }
-    }
+    } catch (e) { /* silent */ }
   }, CLOUD_POLL_MS);
-  return cloudPollFn;
-}
 }
 
 // Override autoSave to include cloud
