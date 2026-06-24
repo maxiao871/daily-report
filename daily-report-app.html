@@ -523,6 +523,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
     <span id="statusText">未连接同步文件 — 数据仅保存在当前浏览器</span>
     <span class="save-time" id="saveTime"></span>
     <span id="cloudStatus" style="display:none; font-size:11px; margin-left:auto; color:var(--success);"></span>
+    <button id="manualSaveBtn" class="btn btn-mini" title="手动保存（Ctrl+S）">💾 保存</button>
   </div>
 
   <details class="summary-box" open>
@@ -1880,6 +1881,31 @@ autoSave = function() {
   if (token) scheduleCloudSave();
 };
 
+// ── manual save ──────────────────────────────────────
+async function manualSave() {
+  const btn = $("#manualSaveBtn");
+  btn.textContent = "⏳ 保存中…";
+  btn.disabled = true;
+  try {
+    saveToLocalStorage();
+    if (fileHandle) {
+      await writeToFile(fileHandle);
+    }
+    const token = getCloudToken();
+    if (token) {
+      const data = collectAllData();
+      data.savedAt = new Date().toISOString();
+      data.cloudSync = true;
+      await saveToCloud(data);
+    }
+    btn.textContent = "✅ 已保存";
+    setTimeout(() => { btn.textContent = "💾 保存"; btn.disabled = false; }, 1500);
+  } catch (e) {
+    btn.textContent = "❌ 失败";
+    setTimeout(() => { btn.textContent = "💾 保存"; btn.disabled = false; }, 1500);
+  }
+}
+
 // ── init ────────────────────────────────────────────────
 async function init() {
   buildCards();
@@ -1921,6 +1947,7 @@ async function init() {
   $("#copyBtn").addEventListener("click", copyResult);
   $("#downloadBtn").addEventListener("click", downloadResult);
   $("#sampleBtn").addEventListener("click", fillSample);
+  $("#manualSaveBtn").addEventListener("click", manualSave);
   $("#clearBtn").addEventListener("click", clearAll);
   $("#collapseAll").addEventListener("click", collapseAll);
   $("#pickFileBtn").addEventListener("click", pickSaveFile);
@@ -1935,6 +1962,13 @@ async function init() {
 
   initGlobalPaste();
   setupSyncDialog();
+  // Ctrl+S / Cmd+S manual save
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      manualSave();
+    }
+  });
   // If cloud token exists, start syncing
   if (getCloudToken()) {
     startCloudPolling();
