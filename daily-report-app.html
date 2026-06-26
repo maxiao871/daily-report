@@ -1572,7 +1572,7 @@ function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Bo
 // 明日重点工作：仅保留渠道名称 + 驻点/培训/活动
 
 
-// 过滤明日重点工作：仅保留渠道名/驻点/培训/活动
+// 过滤明日重点工作：仅保留渠道名/驻点/培训/活动 // v6.26 fix: removed 启动推动追踪复盘
 function filterTomorrowPlan(items) {
   const keywords = ["驻点","培训","宣导","活动","沙龙"];
   const filtered = items.filter(it => {
