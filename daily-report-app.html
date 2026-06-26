@@ -1562,7 +1562,7 @@ function clearAll() {
 // ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
 const TOMORROW_KEYWORDS = ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"];
-function lines(v) { return String(v||"").split(/[\n,，、;；]/).map(s=>s.trim()).filter(Boolean); }
+function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
 function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
@@ -1575,9 +1575,7 @@ function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Bo
 // 过滤明日重点工作：仅保留渠道名/驻点/培训/活动 // v6.26 fix: removed 启动推动追踪复盘
 function filterTomorrowPlan(items) {
   const keywords = ["驻点","培训","宣导","活动","沙龙"];
-  const filtered = items.filter(it => {
-    return ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"].some(k => it.includes(k)) || keywords.some(k => it.includes(k));
-  });
+  const filtered = items.filter(it => keywords.some(k => it.includes(k)));
   return filtered.length ? filtered.join("、") : "待定";
 }
 
