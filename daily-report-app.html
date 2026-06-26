@@ -508,7 +508,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
     <div class="actions">
       <button id="pickFileBtn" type="button" class="secondary" title="连接本地JSON文件实现跨电脑同步（建议放网盘目录）">📁 设置同步文件</button>
       <button id="exportBtn" type="button" class="secondary" title="下载完整数据备份">⬇ 导出备份</button>
-      <button id="importBtn" type="button" class="secondary" title="从备份文件恢复数据">⬆ 导入恢复</button>
+      <button id="importBtn" type="button" class="secondary" title="从备份文件��复数据">⬆ 导入恢复</button>
       <input type="file" id="importFile" accept=".json" />
       <button id="cloudSyncBtn" type="button" class="cloud-btn" title="团队多人实时共享数据">☁️ 团队同步</button>
       <button id="sampleBtn" type="button" class="secondary">填入示例</button>
@@ -570,7 +570,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
         💡 把伙伴发来的汇报文字粘进来，点击「解析填充」自动填入上方对应区域。<br>
         支持：<code>名字：</code>区分多人 / <code>键：值</code> / 自由文本（自动识别数字）
       </div>
-      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效面谈人数：10&#10;……"></textarea>
+      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效面���人数：10&#10;……"></textarea>
       <div class="paste-actions">
         <button id="globalPasteParseBtn" type="button">🔳 解析填充</button>
         <button id="globalPasteClearBtn" type="button" class="secondary">清空粘贴区</button>
@@ -1562,7 +1562,7 @@ function clearAll() {
 // ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
 const TOMORROW_KEYWORDS = ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"];
-function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
+function lines(v) { return String(v||"").split(/[\n,，、;；]/).map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
 function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
