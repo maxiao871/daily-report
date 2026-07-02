@@ -2007,8 +2007,21 @@ async function init() {
     }
   }
 
-  // 2. Fallback: load localStorage only if no file data loaded
-  if (!fileHandle) {
+  // 2. Load from cloud if token exists (primary data source)
+  let cloudData = null;
+  if (!fileHandle && getCloudToken()) {
+    try {
+      cloudData = await loadFromCloud();
+      if (cloudData) {
+        applyDataToForm(cloudData);
+        saveToLocalStorage();
+        showToast('已从团队云端加载数据', 'success');
+      }
+    } catch(e) { /* ignore */ }
+  }
+
+  // 2.5. Fallback: load localStorage only if no file/cloud data loaded
+  if (!fileHandle && !cloudData) {
     loadFromLocalStorage();
     syncToDOM();
   }
