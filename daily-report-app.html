@@ -893,7 +893,7 @@ function applyDataToForm(data) {
   if (data.summary) {
     Object.entries(data.summary).forEach(([k, v]) => {
       const el = document.getElementById(k);
-      if (el) el.value = v || '';
+      if (el) el.value = (v !== undefined && v !== null) ? v : '';
     });
   }
   if (data.people) {
@@ -902,7 +902,7 @@ function applyDataToForm(data) {
       const p = data.people[i];
       personData[i].name = p.name || DEFAULT_NAMES[i];
       for (const f of PERSON_FIELDS) {
-        personData[i][f.id] = p[f.id] || '';
+        personData[i][f.id] = (p[f.id] ?? '');
       }
     }
   }
@@ -911,7 +911,7 @@ function applyDataToForm(data) {
 
 function syncToDOM() {
   for (let i = 0; i < 4; i++) {
-    const card = $$(".person-card")[i];
+    const card = $(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
     for (const f of PERSON_FIELDS) {
@@ -1702,7 +1702,7 @@ async function saveToCloud(data) {
 
 
 let cloudSaveTimer = null;
-function scheduleCloudSave() {
+async function scheduleCloudSave() {
   cloudHasChanges = true;
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(async () => {
@@ -1933,13 +1933,37 @@ async function init() {
         if (fileData) {
           fileHandle = handle;
           applyDataToForm(fileData);
-          saveToLocalStorage(); // mirror
+          // Save file data to localStorage ONLY if localStorage is empty or older
+          // This prevents old file data from overwriting newer browser data
+          const localRaw = localStorage.getItem(STORAGE_KEY);
+          if (!localRaw) {
+            saveToLocalStorage(); // No local data yet, mirror file
+          } else {
+            try {
+              const localData = JSON.parse(localRaw);
+              const fileTime = fileData.savedAt || '1970';
+              const localTime = localData.savedAt || '1970';
+              if (fileTime > localTime) {
+                // File is newer → keep file data (already applied above)
+                saveToLocalStorage();
+              } else {
+                // localStorage is newer → restore from it
+                applyDataToForm(localData);
+              }
+            } catch(e) {
+              saveToLocalStorage(); // localStorage corrupt, mirror file
+            }
+          } // mirror
         }
       }
     }
   }
 
-  // 2. Fallback: localStorage
+  // 2. Fallback: load localStorage only if no file data loaded
+  if (!fileHandle) {
+    loadFromLocalStorage();
+    syncToDOM();
+  }
   if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
     // First visit: load defaults
     $('#reportDate').value = '6.11';
@@ -1967,9 +1991,18 @@ async function init() {
   $("#importBtn").addEventListener("click", importJSON);
   $("#importFile").addEventListener("change", handleImportFile);
 
-  // beforeunload: final save
-  window.addEventListener('beforeunload', () => {
-    saveToLocalStorage();
+  // Save everything before closing
+  let _cleanup = () => {
+    try {
+      saveToLocalStorage();
+      // Try synchronous localStorage only - async file writes won't complete on unload
+      // The periodic autoSave (every 15s) already handles file writes
+    } catch(e) {}
+  };
+  window.addEventListener('beforeunload', _cleanup);
+  // Also save on visibility change (tab switch, minimize)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) _cleanup();
   });
 
   initGlobalPaste();
