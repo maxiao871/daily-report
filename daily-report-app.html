@@ -1280,60 +1280,14 @@ function attachSummaryAutoSave() {
   const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'].concat(['todayActiveFans','todayHighPFans']);
   summaryIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input', autoSave);
-      if (id === 'monthActiveFans') el.addEventListener('input', () => autoCalcFansToday('active'));
-      if (id === 'monthHighPFans') el.addEventListener('input', () => autoCalcFansToday('highP'));
-    }
+    if (el) el.addEventListener('input', autoSave);
   });
   // Result textarea manual edit
   $('#result').addEventListener('input', autoSave);
-
-  // Detect manual edits to today fields → remove auto-calc flag
-  ['todayActiveFans', 'todayHighPFans'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', () => {
-      el.dataset.autoCalc = 'false';
-      el.style.background = '';
-    });
-  });
 }
 
-  // ── auto‑calculate today's fans from month cumulative ─────
-  function autoCalcFansToday(field) {
-    const monthEl = document.getElementById(field === 'active' ? 'monthActiveFans' : 'monthHighPFans');
-    const todayEl = document.getElementById(field === 'active' ? 'todayActiveFans' : 'todayHighPFans');
-    if (!monthEl || !todayEl) return;
-    const monthVal = parseInt(monthEl.value, 10);
-    if (isNaN(monthVal)) { updateYesterdaySnapshot(); return; }
-    try {
-      const raw = localStorage.getItem(YESTERDAY_KEY);
-      if (raw) {
-        const snap = JSON.parse(raw);
-        const prev = field === 'active' ? snap.active : snap.highP;
-        const prevVal = parseInt(prev, 10);
-        if (!isNaN(prevVal) && monthVal >= prevVal) {
-          const diff = monthVal - prevVal;
-          if (!todayEl.value || todayEl.dataset.autoCalc === 'true') {
-            todayEl.value = diff;
-            todayEl.dataset.autoCalc = 'true';
-            todayEl.style.background = '#e8f5e9';
-          }
-        }
-      }
-    } catch(e) {}
-    updateYesterdaySnapshot();
-  }
-
-  function updateYesterdaySnapshot() {
-    const a = parseInt(document.getElementById('monthActiveFans').value, 10) || 0;
-    const p = parseInt(document.getElementById('monthHighPFans').value, 10) || 0;
-    yesterdaySnapshot = { active: a, highP: p };
-    localStorage.setItem(YESTERDAY_KEY, JSON.stringify(yesterdaySnapshot));
-  }
-
-  // ── collect data ────────────────────────────────────────
-  function getSummary() {
+// ── collect data ────────────────────────────────────────
+function getSummary() {
   const [actTarget, actDone] = splitPair($("#activityPeople").value);
   const [chTarget, chDone] = splitPair($("#channelCount").value);
   return {
@@ -1540,8 +1494,6 @@ async function handleImportFile(e) {
     const data = JSON.parse(text);
     applyDataToForm(data);
     syncToDOM();
-  // Load yesterday snapshot for auto-calc
-  try { const raw = localStorage.getItem(YESTERDAY_KEY); if (raw) yesterdaySnapshot = JSON.parse(raw); } catch(e) {}
     saveToLocalStorage();
     if (fileHandle) await writeToFileNow(fileHandle);
     showToast('✓ 数据已恢复', 'success');
@@ -1713,10 +1665,11 @@ async function loadFromCloud() {
     return JSON.parse(decodeURIComponent(escape(bytes)));
   } catch (e) {
     if (e.message === 'TOKEN_INVALID') {
-      showToast('团队同步 Token 无效，请重新设置', 'error');
-      return null;
+      showToast('🔑 团队同步 Token 已过期，请重新设置', 'error');
+      return { error: 'TOKEN_INVALID' };
     }
-    return null; // network errors are silent
+    showToast('⚠️ 云端连接失败，请检查网络', 'warn');
+    return { error: 'NETWORK' };
   }
 }
 
@@ -1896,7 +1849,7 @@ function setupSyncDialog() {
   });
 }
 
-async function startCloudPolling() {
+async async function startCloudPolling() {
   if (cloudPollingTimer) clearInterval(cloudPollingTimer);
   // Load cloud data immediately
   const cloudData = await loadFromCloud();
@@ -2007,21 +1960,8 @@ async function init() {
     }
   }
 
-  // 2. Load from cloud if token exists (primary data source)
-  let cloudData = null;
-  if (!fileHandle && getCloudToken()) {
-    try {
-      cloudData = await loadFromCloud();
-      if (cloudData) {
-        applyDataToForm(cloudData);
-        saveToLocalStorage();
-        showToast('已从团队云端加载数据', 'success');
-      }
-    } catch(e) { /* ignore */ }
-  }
-
-  // 2.5. Fallback: load localStorage only if no file/cloud data loaded
-  if (!fileHandle && !cloudData) {
+  // 2. Fallback: load localStorage only if no file data loaded
+  if (!fileHandle) {
     loadFromLocalStorage();
     syncToDOM();
   }
@@ -2036,7 +1976,6 @@ async function init() {
 
   updateStatusBar();
   attachSummaryAutoSave();
-  try { if (!localStorage.getItem(YESTERDAY_KEY)) updateYesterdaySnapshot(); } catch(e) {}
   startFlashInterval();
 
   // Buttons
@@ -2075,8 +2014,18 @@ async function init() {
       manualSave();
     }
   });
-  // If cloud token exists, start syncing
+  // If cloud token exists, load data immediately
   if (getCloudToken()) {
+    try {
+      const fresh = await loadFromCloud();
+      if (fresh && !fresh.error) {
+        applyDataToForm(fresh);
+        saveToLocalStorage();
+        syncToDOM();
+        updateStatusBar();
+        showToast('✅ 已从云端恢复数据', 'success');
+      }
+    } catch(e) { /* ignore, polling will retry */ }
     startCloudPolling();
   }
 
