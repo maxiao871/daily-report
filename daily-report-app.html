@@ -1849,7 +1849,7 @@ function setupSyncDialog() {
   });
 }
 
-async async function startCloudPolling() {
+async function startCloudPolling() {
   if (cloudPollingTimer) clearInterval(cloudPollingTimer);
   // Load cloud data immediately
   const cloudData = await loadFromCloud();
