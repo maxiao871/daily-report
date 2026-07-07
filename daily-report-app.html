@@ -496,6 +496,14 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   .person-body { grid-template-columns: 1fr; }
 }
 </style>
+<script>
+(function(){
+  if(localStorage.getItem("dailyReportData_v3")){console.log("ℹ️ 已有本地数据，跳过预置");return;}
+  var _d={"version":3,"summary":{"reportDate":"7.1","monthLabel":"7月","todayPresale":"3.5","todayUnderwrite":"13.4","monthPresale":"3.5","monthUnderwrite":"13.4","monthTarget":"140","tomorrowEstimate":"14","activityPeople":"50/7","channelCount":"6/0","specialTarget":"14","specialMonth":"","specialToday":"","onlineMonth":"","offlineTrainingMonth":"","offlineActivityMonth":"","monthActiveFans":"7","monthHighPFans":"0","todayActiveFans":"7","todayHighPFans":""},"people":[{"name":"钟华","work":"大童绩优沟通交流\n大童高端渠道经营","channelWork":"大童、年丰","activity":"","training":"","fansInterview":"10","fansPlan":"2","fansNew":"2","specialOnline":"","specialTrain":"","specialAct":"","excellent":"绩优粉丝与内勤深度沟通","improve":"","plan":"大童驻点\n绩优伙伴产品沟通","premium":"大童:泰赢家20万3年"},{"name":"李红霞","work":"明亚渠道驻点沟通\n泰有鑫意一对一宣导","channelWork":"明亚、保通","activity":"","training":"","fansInterview":"12","fansPlan":"2","fansNew":"3","specialOnline":"","specialTrain":"","specialAct":"","excellent":"泰有鑫意有线索","improve":"","plan":"明亚驻点\n线索落地追踪","premium":"明亚:泰给利5万趸"},{"name":"朱中国","work":"年丰、泛华驻点\n客户沙龙邀约","channelWork":"年丰、泛华","activity":"","training":"","fansInterview":"25","fansPlan":"3","fansNew":"3","specialOnline":"","specialTrain":"","specialAct":"","excellent":"","improve":"泰有鑫意推动节奏需加快","plan":"恒邦630冲刺培训\n宝瑞泰有鑫意线上培训","premium":""},{"name":"刘杰","work":"保通泰有鑫意自媒体培训及推动\n泰有鑫意线上品宣0篇","channelWork":"保通","activity":"","training":"保通自媒体培训","fansInterview":"25","fansPlan":"3","fansNew":"3","specialOnline":"0","specialTrain":"0","specialAct":"0","excellent":"","improve":"泰有鑫意一对一推动须加快","plan":"保通泰有鑫意客户沙龙\n泰给利客户沙龙","premium":"京东:泰给利10万趸"}],"result":"","savedAt":"2026-07-03T09:00:00.000Z"};
+  localStorage.setItem("dailyReportData_v3",JSON.stringify(_d));
+  console.log("✅ 预置数据: "+_d.people.map(function(p){return p.name}).join(", "));
+})();
+</script>
 </head>
 <body>
 <main class="shell">
@@ -508,7 +516,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
     <div class="actions">
       <button id="pickFileBtn" type="button" class="secondary" title="连接本地JSON文件实现跨电脑同步（建议放网盘目录）">📁 设置同步文件</button>
       <button id="exportBtn" type="button" class="secondary" title="下载完整数据备份">⬇ 导出备份</button>
-      <button id="importBtn" type="button" class="secondary" title="从备份文件��复数据">⬆ 导入恢复</button>
+      <button id="importBtn" type="button" class="secondary" title="从备份文件���复数据">⬆ 导入恢复</button>
       <input type="file" id="importFile" accept=".json" />
       <button id="cloudSyncBtn" type="button" class="cloud-btn" title="团队多人实时共享数据">☁️ 团队同步</button>
       <button id="sampleBtn" type="button" class="secondary">填入示例</button>
@@ -570,7 +578,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
         💡 把伙伴发来的汇报文字粘进来，点击「解析填充」自动填入上方对应区域。<br>
         支持：<code>名字：</code>区分多人 / <code>键：值</code> / 自由文本（自动识别数字）
       </div>
-      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效面���人数：10&#10;……"></textarea>
+      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效������人数：10&#10;……"></textarea>
       <div class="paste-actions">
         <button id="globalPasteParseBtn" type="button">🔳 解析填充</button>
         <button id="globalPasteClearBtn" type="button" class="secondary">清空粘贴区</button>
@@ -817,7 +825,7 @@ async function readFromFile(handle) {
   } catch (e) { return null; }
 }
 
-// ── localStorage ─────────────────────────────────────────
+// ── localStorage ──────────────────────────────────────���──
 const STORAGE_KEY = 'dailyReportData_v3';
 
 function collectAllData() {
@@ -1851,15 +1859,17 @@ function setupSyncDialog() {
 
 async function startCloudPolling() {
   if (cloudPollingTimer) clearInterval(cloudPollingTimer);
-  // Load cloud data immediately
-  const cloudData = await loadFromCloud();
-  if (cloudData && cloudData.savedAt) {
-    applyDataToForm(cloudData);
-    syncToDOM();
-    saveToLocalStorage();
-    cloudLastSyncTime = new Date();
-    updateStatusBar();
-  }
+  // Always trust local data on startup — do NOT pull from cloud.
+  // Cloud sync is for: (a) pushing local changes, (b) polling for OTHER people's changes.
+  // Memorize current cloud SHA so polling detects only real external changes.
+  try {
+    const meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/'+CLOUD_FILE);
+    if (meta) {
+      cloudFileSHA = meta.sha;
+      cloudLastKnownSHA = meta.sha;
+      cloudLastSyncTime = new Date();
+    }
+  } catch(e) { /* network — will retry in poll */ }
   cloudPollingTimer = setInterval(async () => {
     const token = getCloudToken();
     if (!token) { clearInterval(cloudPollingTimer); return; }
@@ -2014,18 +2024,8 @@ async function init() {
       manualSave();
     }
   });
-  // If cloud token exists, load data immediately
+  // If cloud token exists, start polling (polling now compares timestamps)
   if (getCloudToken()) {
-    try {
-      const fresh = await loadFromCloud();
-      if (fresh && !fresh.error) {
-        applyDataToForm(fresh);
-        saveToLocalStorage();
-        syncToDOM();
-        updateStatusBar();
-        showToast('✅ 已从云端恢复数据', 'success');
-      }
-    } catch(e) { /* ignore, polling will retry */ }
     startCloudPolling();
   }
 
