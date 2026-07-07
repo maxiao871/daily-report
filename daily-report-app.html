@@ -496,14 +496,6 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   .person-body { grid-template-columns: 1fr; }
 }
 </style>
-<script>
-(function(){
-  if(localStorage.getItem("dailyReportData_v3")){console.log("ℹ️ 已有本地数据，跳过预置");return;}
-  var _d={"version":3,"summary":{"reportDate":"7.1","monthLabel":"7月","todayPresale":"3.5","todayUnderwrite":"13.4","monthPresale":"3.5","monthUnderwrite":"13.4","monthTarget":"140","tomorrowEstimate":"14","activityPeople":"50/7","channelCount":"6/0","specialTarget":"14","specialMonth":"","specialToday":"","onlineMonth":"","offlineTrainingMonth":"","offlineActivityMonth":"","monthActiveFans":"7","monthHighPFans":"0","todayActiveFans":"7","todayHighPFans":""},"people":[{"name":"钟华","work":"大童绩优沟通交流\n大童高端渠道经营","channelWork":"大童、年丰","activity":"","training":"","fansInterview":"10","fansPlan":"2","fansNew":"2","specialOnline":"","specialTrain":"","specialAct":"","excellent":"绩优粉丝与内勤深度沟通","improve":"","plan":"大童驻点\n绩优伙伴产品沟通","premium":"大童:泰赢家20万3年"},{"name":"李红霞","work":"明亚渠道驻点沟通\n泰有鑫意一对一宣导","channelWork":"明亚、保通","activity":"","training":"","fansInterview":"12","fansPlan":"2","fansNew":"3","specialOnline":"","specialTrain":"","specialAct":"","excellent":"泰有鑫意有线索","improve":"","plan":"明亚驻点\n线索落地追踪","premium":"明亚:泰给利5万趸"},{"name":"朱中国","work":"年丰、泛华驻点\n客户沙龙邀约","channelWork":"年丰、泛华","activity":"","training":"","fansInterview":"25","fansPlan":"3","fansNew":"3","specialOnline":"","specialTrain":"","specialAct":"","excellent":"","improve":"泰有鑫意推动节奏需加快","plan":"恒邦630冲刺培训\n宝瑞泰有鑫意线上培训","premium":""},{"name":"刘杰","work":"保通泰有鑫意自媒体培训及推动\n泰有鑫意线上品宣0篇","channelWork":"保通","activity":"","training":"保通自媒体培训","fansInterview":"25","fansPlan":"3","fansNew":"3","specialOnline":"0","specialTrain":"0","specialAct":"0","excellent":"","improve":"泰有鑫意一对一推动须加快","plan":"保通泰有鑫意客户沙龙\n泰给利客户沙龙","premium":"京东:泰给利10万趸"}],"result":"","savedAt":"2026-07-03T09:00:00.000Z"};
-  localStorage.setItem("dailyReportData_v3",JSON.stringify(_d));
-  console.log("✅ 预置数据: "+_d.people.map(function(p){return p.name}).join(", "));
-})();
-</script>
 </head>
 <body>
 <main class="shell">
@@ -935,11 +927,14 @@ function syncToDOM() {
 function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
+    if (!raw) return;
     const data = JSON.parse(raw);
+    if (!data || data.version === undefined) throw new Error('invalid data');
     applyDataToForm(data);
-    return true;
-  } catch (e) { return false; }
+  } catch(e) {
+    console.warn('loadFromLocalStorage failed:', e.message);
+    localStorage.removeItem(STORAGE_KEY);
+  }
 }
 
 // ── Paste parser ─────────────────────────────────────────
@@ -1976,9 +1971,14 @@ async function init() {
     syncToDOM();
   }
   if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
-    // First visit: load defaults
-    $('#reportDate').value = '6.11';
-    $('#monthLabel').value = '6月';
+    // First visit: seed defaults and save immediately
+    $('#reportDate').value = '7.7';
+    $('#monthLabel').value = '7月';
+    for (let i = 0; i < DEFAULT_NAMES.length; i++) {
+      if (!personData[i] || !personData[i].name) personData[i] = { name: DEFAULT_NAMES[i] };
+    }
+    saveToLocalStorage();
+    syncToDOM();
   }
 
   // 3. Sync DOM
