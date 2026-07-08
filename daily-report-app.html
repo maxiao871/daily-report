@@ -1789,6 +1789,15 @@ async function saveToCloud(data) {
 
 var cloudSaveTimer = null;
 function scheduleCloudSave() {
+  var token = getCloudToken();
+  if (!token) {
+    // Show a hint once per session
+    if (!localStorage.getItem('cloudNoTokenHint')) {
+      localStorage.setItem('cloudNoTokenHint', '1');
+      setTimeout(function() { showToast('💡 设置团队同步 Token 后，数据会实时共享给其他设备', 'info', 6000); }, 5000);
+    }
+    return;
+  }
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(function() {
     unlessSavingCloud(buildCloudPayload());
@@ -1796,8 +1805,13 @@ function scheduleCloudSave() {
 }
 
 async function unlessSavingCloud(data) {
+  if (!getCloudToken()) return;
   if (cloudSaving) { cloudPendingSave = true; return; }
-  await saveToCloud(data);
+  var ok = await saveToCloud(data);
+  if (!ok) {
+    console.warn('Cloud save failed, will retry on next edit');
+    updateStatusBar();
+  }
 }
 
 // ── Polling: always check, merge intelligently ─────────
@@ -2019,8 +2033,29 @@ async function init() {
   buildCards();
   checkFileAPI();
   $("#manualSaveBtn").addEventListener("click", manualSave);
-  window.addEventListener('beforeunload', () => { try { saveToLocalStorage(); } catch(e) {} });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToLocalStorage(); } catch(e) {} } });
+  window.addEventListener('beforeunload', () => { 
+    try { saveToLocalStorage(); } catch(e) {} 
+    var token = getCloudToken();
+    if (token) {
+      // Synchronous push on close (keep-alive XHR)
+      var payload = buildCloudPayload();
+      var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+      var xhr = new XMLHttpRequest();
+      xhr.open('PUT', 'https://api.github.com/repos/maxiao871/daily-report/contents/daily-report-shared.json', false);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+      try { xhr.send(JSON.stringify({message:'chore: close-save',content:encoded,sha:cloudFileSHA||null})); } catch(e) {}
+    }
+  });
+  document.addEventListener('visibilitychange', () => { 
+    if (document.hidden) { 
+      try { saveToLocalStorage(); } catch(e) {} 
+      if (getCloudToken() && !cloudSaving) { 
+        unlessSavingCloud(buildCloudPayload()); 
+      } 
+    } 
+  });
   document.addEventListener("keydown", (e) => { if ((e.ctrlKey||e.metaKey)&&e.key==="s") { e.preventDefault(); manualSave(); } });
 
   // Phase 1: File System API (best-effort, ignore errors)
@@ -2062,6 +2097,13 @@ async function init() {
   }
   syncToDOM();
   updateStatusBar();
+  
+  // Warn if cloud sync is not set up
+  if (!getCloudToken() && !localStorage.getItem('cloudSetupDismissed')) {
+    setTimeout(() => {
+      showToast('🔔 请点击「团队同步」设置 Token 以启用多设备数据同步', 'info', 12000);
+    }, 2000);
+  }
  
   // Phase 3: remaining setup (all wrapped in try)
   try { attachSummaryAutoSave(); } catch(e) { console.warn('attachSummaryAutoSave:', e); }
