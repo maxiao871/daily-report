@@ -1594,6 +1594,11 @@ function collapseAll() {
 // ── Cloud Sync (GitHub-based) ────────────────────────────
 const CLOUD_FILE = 'daily-report-shared.json';
 const CLOUD_TOKEN_KEY = 'cloudSyncToken_v3';
+const CLOUD_POLL_MS = 5000; // poll every 5s
+
+// ─────────────────────────────────────────────────────
+//  Cloud vars
+// ─────────────────────────────────────────────────────
 let cloudToken = null;
 let cloudFileSHA = null;
 let cloudLastSyncTime = null;
@@ -1601,146 +1606,51 @@ let cloudPollingTimer = null;
 let cloudSaving = false;
 let cloudPendingSave = false;
 let cloudLastKnownSHA = null;
+let cloudSaveTimer = null;
+let cloudPollOk = 0, cloudPollFail = 0;
 
+// ─────────────────────────────────────────────────────
+//  Token helpers
+// ─────────────────────────────────────────────────────
 function getCloudToken() {
   if (!cloudToken) cloudToken = localStorage.getItem(CLOUD_TOKEN_KEY);
   return cloudToken;
 }
-
-function setCloudToken(token) {
-  cloudToken = token;
-  localStorage.setItem(CLOUD_TOKEN_KEY, token);
-}
-
+function setCloudToken(t) { cloudToken = t; localStorage.setItem(CLOUD_TOKEN_KEY, t); }
 function clearCloudToken() {
   cloudToken = null;
   localStorage.removeItem(CLOUD_TOKEN_KEY);
-  cloudFileSHA = null;
-  cloudLastKnownSHA = null;
-  cloudLastSyncTime = null;
-  clearInterval(cloudPollingTimer);
-  cloudPollingTimer = null;
+  cloudFileSHA = null; cloudLastKnownSHA = null; cloudLastSyncTime = null;
+  clearInterval(cloudPollingTimer); cloudPollingTimer = null;
 }
 
-const CLOUD_POLL_MS = 5000; // poll every 5s for updates from others
-const CLOUD_DEBOUNCE_MS = 100;  // push after 300ms of inactivity
-
-// ── Merging helpers ──────────────────────────────────
-
-/** Merge cloud data into local: keep local edits, fill in missing people */
-function mergeCloudData(cloudData) {
-  var changed = false;
-  // Summary: fill only if local field is empty
-  if (cloudData.summary) {
-    var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
-    summaryIds.forEach(function(k) {
-      if (cloudData.summary[k] !== undefined && cloudData.summary[k] !== null) {
-        var el = document.getElementById(k);
-        if (el && !el.value) { el.value = cloudData.summary[k]; changed = true; }
-      }
-    });
-  }
-  // People: merge by name
-  if (cloudData.people && Array.isArray(cloudData.people)) {
-    for (var ci = 0; ci < cloudData.people.length; ci++) {
-      var cp = cloudData.people[ci];
-      if (!cp.name) continue;
-      // Find matching local person
-      var matched = -1;
-      for (var li = 0; li < 4; li++) {
-        if (personData[li].name && personData[li].name === cp.name) { matched = li; break; }
-        if (!personData[li].name && matched < 0) { matched = li; } // empty slot
-      }
-      if (matched < 0) continue; // no room
-      personData[matched].name = cp.name;
-      for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
-        var f = PERSON_FIELDS[fi];
-        // Only fill remote value if local is empty
-        if (cp[f.id] !== undefined && cp[f.id] !== null && cp[f.id] !== '') {
-          if (!personData[matched][f.id] || personData[matched][f.id] === '') {
-            personData[matched][f.id] = cp[f.id];
-            changed = true;
-          }
-        }
-      }
-    }
-  }
-  return changed;
-}
-
-/** Collect data from all person cards (what's in the DOM + personData) */
-function collectPersonData() {
-  var result = [];
-  for (var i = 0; i < 4; i++) {
-    var obj = { name: personData[i].name || DEFAULT_NAMES[i] };
-    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
-      var f = PERSON_FIELDS[fi];
-      var el = document.getElementById('p' + i + '_' + f.id);
-      if (el) obj[f.id] = el.value;
-      else obj[f.id] = personData[i][f.id] || '';
-    }
-    result.push(obj);
-  }
-  return result;
-}
-
-/** Collect summary data from DOM */
-function collectSummaryData() {
-  var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
-  var obj = {};
-  summaryIds.forEach(function(k) {
-    var el = document.getElementById(k);
-    obj[k] = el ? el.value : '';
-  });
-  return obj;
-}
-
-/** Full data payload for cloud */
-function buildCloudPayload() {
-  // Sync DOM → personData before collecting
-  for (var i = 0; i < 4; i++) {
-    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
-      var f = PERSON_FIELDS[fi];
-      var el = document.getElementById('p' + i + '_' + f.id);
-      if (el) personData[i][f.id] = el.value;
-    }
-  }
-  return {
-    version: 3,
-    savedAt: new Date().toISOString(),
-    savedBy: (personData[0] && personData[0].name) || DEFAULT_NAMES[0],
-    summary: collectSummaryData(),
-    people: collectPersonData()
-  };
-}
-
-// ── Cloud API ──────────────────────────────────────
-
+// ─────────────────────────────────────────────────────
+//  Low-level GitHub API call
+// ─────────────────────────────────────────────────────
 async function cloudAPI(method, path, body) {
   var token = getCloudToken();
   if (!token) return null;
   var url = 'https://api.github.com' + path;
   var opts = {
     method: method,
-    headers: {
-      Authorization: 'Bearer ' + token,
-      Accept: 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json',
-      'User-Agent': 'daily-report-app/2.0'
-    },
-    signal: AbortSignal.timeout(8000)
+    headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'dr-app' },
+    signal: AbortSignal.timeout(10000)
   };
   if (body) opts.body = JSON.stringify(body);
   var res = await fetch(url, opts);
   if (res.status === 401) throw new Error('TOKEN_INVALID');
   if (res.status === 404) return null;
   if (!res.ok) {
-    var err = await res.json().catch(function() { return {}; });
-    throw new Error(err.message || 'API_ERROR_' + res.status);
+    var errText = res.status + '';
+    try { var ej = await res.json(); errText += ' ' + (ej.message || ''); } catch(e) {}
+    throw new Error(errText);
   }
   return res.json();
 }
 
+// ─────────────────────────────────────────────────────
+//  Load cloud data (raw JSON object)
+// ─────────────────────────────────────────────────────
 async function loadFromCloud() {
   var token = getCloudToken();
   if (!token) return null;
@@ -1752,211 +1662,229 @@ async function loadFromCloud() {
     var bytes = atob(data.content);
     return JSON.parse(decodeURIComponent(escape(bytes)));
   } catch (e) {
-    if (e.message === 'TOKEN_INVALID') {
-      showToast('🔑 团队同步 Token 已过期，请重新设置', 'error');
-      return { error: 'TOKEN_INVALID' };
-    }
+    if (e.message === 'TOKEN_INVALID') { showToast('🔑 Token 已过期'); return { error: 'TOKEN_INVALID' }; }
     return { error: 'NETWORK' };
   }
 }
 
-// ── Save to cloud (immediate + queueing) ──────────────
+// ─────────────────────────────────────────────────────
+//  Merge: always accept cloud data for fresh devices
+// ─────────────────────────────────────────────────────
+function mergeCloudData(cloudData) {
+  var changed = false;
 
+  // Detect fresh device: ALL local names are defaults ("伙伴1-4")
+  var fresh = true;
+  var defs = {}; DEFAULT_NAMES.forEach(function(n) { defs[n] = true; });
+  for (var i = 0; i < 4; i++) { if (!defs[personData[i].name]) { fresh = false; break; } }
 
-async function saveToCloud(data, _attempt) {
+  // Summary
+  if (cloudData.summary) {
+    var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
+    summaryIds.forEach(function(k) {
+      var v = cloudData.summary[k];
+      if (v === undefined || v === null) return;
+      var el = document.getElementById(k);
+      if (!el) return;
+      if (fresh || !el.value) { el.value = v; changed = true; }
+    });
+  }
+
+  // People
+  if (cloudData.people && Array.isArray(cloudData.people)) {
+    for (var ci = 0; ci < cloudData.people.length; ci++) {
+      var cp = cloudData.people[ci];
+      if (!cp.name) continue;
+      // Match by name or by slot
+      var mi = -1;
+      for (var li = 0; li < 4; li++) {
+        if (personData[li].name === cp.name) { mi = li; break; }
+        if (!personData[li].name || defs[personData[li].name]) { if (mi < 0) mi = li; }
+      }
+      if (mi < 0 && fresh && ci < 4) mi = ci;
+      if (mi < 0) continue;
+
+      personData[mi].name = cp.name;
+      for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
+        var f = PERSON_FIELDS[fi];
+        var v = cp[f.id];
+        if (v === undefined || v === null || v === '') continue;
+        if (fresh || !personData[mi][f.id] || personData[mi][f.id] === '') {
+          personData[mi][f.id] = v; changed = true;
+        }
+      }
+    }
+  }
+  return changed;
+}
+
+// ─────────────────────────────────────────────────────
+//  Build payload from DOM (always fresh read)
+// ─────────────────────────────────────────────────────
+function buildCloudPayload() {
+  for (var i = 0; i < 4; i++) {
+    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
+      var f = PERSON_FIELDS[fi];
+      var el = document.getElementById('p' + i + '_' + f.id);
+      if (el) personData[i][f.id] = el.value;
+    }
+  }
+  var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
+  var sum = {};
+  summaryIds.forEach(function(k) { var el = document.getElementById(k); sum[k] = el ? el.value : ''; });
+  var people = [];
+  for (var i2 = 0; i2 < 4; i2++) {
+    var obj = { name: personData[i2].name || DEFAULT_NAMES[i2] };
+    for (var fi2 = 0; fi2 < PERSON_FIELDS.length; fi2++) {
+      var f2 = PERSON_FIELDS[fi2]; obj[f2.id] = personData[i2][f2.id] || '';
+    }
+    people.push(obj);
+  }
+  return { version: 3, savedAt: new Date().toISOString(), savedBy: personData[0].name || DEFAULT_NAMES[0], summary: sum, people: people };
+}
+
+// ─────────────────────────────────────────────────────
+//  Save to cloud — with 409 conflict handling
+// ─────────────────────────────────────────────────────
+async function saveToCloud(data, attempt) {
   var token = getCloudToken();
   if (!token) return false;
-  if (!_attempt && cloudSaving) { cloudPendingSave = true; return false; }
+  if (!attempt && cloudSaving) { cloudPendingSave = true; return false; }
   cloudSaving = true;
-  if (!_attempt) _attempt = 0;
-  
-  // Build a fresh payload from the DOM right now
-  var liveData = buildCloudPayload();
-  // But prefer passed-in data if it's the same context
-  if (!data || !data.people) data = liveData;
-  
+  if (!attempt) attempt = 0;
+  if (!data) data = buildCloudPayload();
+
   try {
-    var content = JSON.stringify(data, null, 2);
-    var encoded = btoa(unescape(encodeURIComponent(content)));
-    var body = { message: 'chore: auto-sync daily report', content: encoded };
+    var body = { message: 'auto-sync', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
     if (cloudFileSHA) body.sha = cloudFileSHA;
     var result = await cloudAPI('PUT', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE, body);
     if (!result) { cloudSaving = false; return false; }
     cloudFileSHA = result.content.sha;
     cloudLastKnownSHA = result.content.sha;
     cloudLastSyncTime = new Date();
-    cloudSaveRetries = 0;
     cloudSaving = false;
-    if (cloudPendingSave) { cloudPendingSave = false; scheduleCloudSave(); }
+    if (cloudPendingSave) { cloudPendingSave = false; flushCloud(); }
     updateStatusBar();
     return true;
   } catch (e) {
-    // 409 Conflict: someone else pushed while we were editing
-    if (e.message.indexOf('409') >= 0 && _attempt < 5) {
-      console.warn('Cloud conflict (409), resolving attempt ' + (_attempt+1));
+    // 409 Conflict: re-fetch SHA + merge + retry
+    if (e.message.indexOf('409') >= 0 && attempt < 5) {
       try {
-        // Re-fetch the latest cloud SHA + data
-        var fresh = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
-        if (fresh) {
-          cloudFileSHA = fresh.sha;
-          cloudLastKnownSHA = fresh.sha;
-          // Merge cloud data into local (fill empty fields, like before)
-          var freshBytes = atob(fresh.content);
-          var freshData = JSON.parse(decodeURIComponent(escape(freshBytes)));
-          mergeCloudData(freshData);
-          syncToDOM();
-          saveToLocalStorage();
+        var fetchResult = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
+        if (fetchResult) {
+          cloudFileSHA = fetchResult.sha; cloudLastKnownSHA = fetchResult.sha;
+          var fb = atob(fetchResult.content);
+          var fd = JSON.parse(decodeURIComponent(escape(fb)));
+          mergeCloudData(fd); syncToDOM(); saveToLocalStorage();
         }
-        // Wait a random backoff to break symmetry
-        await new Promise(function(r) { setTimeout(r, 100 + Math.random() * 500); });
-        // Re-build DOM payload and retry
         cloudSaving = false;
-        return await saveToCloud(buildCloudPayload(), _attempt + 1);
-      } catch (e2) {
-        cloudSaving = false;
-        if (_attempt < 2) {
-          await new Promise(function(r) { setTimeout(r, 500); });
-          return await saveToCloud(buildCloudPayload(), _attempt + 1);
-        }
-        console.warn('Cloud save failed after conflicts:', e2.message);
-        return false;
-      }
+        await new Promise(function(r) { setTimeout(r, 200 + Math.random() * 800); });
+        return await saveToCloud(buildCloudPayload(), attempt + 1);
+      } catch(e2) { cloudSaving = false; }
     }
-    // Network or other error
+    // Retry once on network error
     cloudSaving = false;
-    if (_attempt < 2) {
+    if (attempt < 1) {
+      cloudFileSHA = null;
       await new Promise(function(r) { setTimeout(r, 1000); });
-      cloudFileSHA = null; // force refetch on retry
-      return await saveToCloud(buildCloudPayload(), _attempt + 1);
+      return await saveToCloud(buildCloudPayload(), attempt + 1);
     }
-    console.warn('Cloud save failed:', e.message);
+    console.warn('Cloud save failed: ' + e.message);
     return false;
   }
 }
 
-// ── Debounced cloud save triggered by edits ────────────
-
-var cloudSaveTimer = null;
-function scheduleCloudSave() {
-  var token = getCloudToken();
-  if (!token) {
-    if (!localStorage.getItem('cloudNoTokenHint')) {
-      localStorage.setItem('cloudNoTokenHint', '1');
-      setTimeout(function() { showToast('💡 设置团队同步 Token 后，数据会实时共享给其他设备', 'info', 6000); }, 5000);
-    }
-    return;
-  }
+// ─────────────────────────────────────────────────────
+//  Debounced cloud push (called by autoSave)
+// ─────────────────────────────────────────────────────
+function flushCloud() {
   clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(function() {
-    // Use the conflict-resolving save directly
-    saveToCloud(null, 0);
-  }, CLOUD_DEBOUNCE_MS);
-}
-
-async function unlessSavingCloud(data) {
   if (!getCloudToken()) return;
-  if (cloudSaving) { cloudPendingSave = true; return; }
-  var ok = await saveToCloud(data || buildCloudPayload(), 0);
-  if (!ok) {
-    console.warn('Cloud save failed, will retry on next edit');
-    updateStatusBar();
-  }
+  cloudSaveTimer = setTimeout(function() { saveToCloud(null, 0); }, 80);
 }
 
-// ── Polling: always check, merge intelligently ─────────
+// ─────────────────────────────────────────────────────
+//  Manual cloud refresh (user clicks a button)
+// ─────────────────────────────────────────────────────
+async function refreshCloud() {
+  if (cloudSaving) { showToast('⏳ 同步中…', 'warn'); return; }
+  showToast('🔄 拉取云端…', 'info');
+  try {
+    var data = await loadFromCloud();
+    if (!data || data.error) { showToast(data && data.error === 'TOKEN_INVALID' ? '🔑 Token 已过期' : '⚠️ 网络异常', 'error'); return; }
+    if (mergeCloudData(data)) { syncToDOM(); saveToLocalStorage(); showToast('✅ 已同步云端最新', 'success'); }
+    else { showToast('✓ 本地已最新', 'info'); }
+    updateStatusBar();
+  } catch(e) { showToast('❌ 同步失败', 'error'); }
+}
 
+// ─────────────────────────────────────────────────────
+//  Polling loop
+// ─────────────────────────────────────────────────────
 async function startCloudPolling() {
   if (cloudPollingTimer) clearInterval(cloudPollingTimer);
-  var token = getCloudToken();
-  if (!token) return;
+  if (!getCloudToken()) return;
 
-  // Phase A: immediate first pull on new device (local merge, don't overwrite)
+  // Phase A: immediate first pull
   try {
     var first = await loadFromCloud();
     if (first && !first.error) {
-      mergeCloudData(first);
-      syncToDOM();
-      saveToLocalStorage();
+      if (mergeCloudData(first)) { syncToDOM(); saveToLocalStorage(); showToast('📥 已加载云端数据', 'success'); }
       cloudLastSyncTime = new Date();
-      updateStatusBar();
     }
-  } catch(e) { /* defer to poll */ }
+  } catch(e) {}
 
-  // Phase B: start polling
+  // Phase B: poll loop
   cloudPollingTimer = setInterval(async function() {
-    var tk = getCloudToken();
-    if (!tk) { clearInterval(cloudPollingTimer); return; }
+    if (!getCloudToken()) { clearInterval(cloudPollingTimer); return; }
     try {
       var meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
       if (!meta) return;
-      if (meta.sha !== cloudLastKnownSHA) {
-        // Remote changed — pull and merge (fill empty fields only)
+      cloudPollOk++; cloudPollFail = 0;
+      if (meta.sha !== cloudLastKnownSHA && !cloudSaving) {
         var fresh = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
         if (fresh) {
           var bytes = atob(fresh.content);
           var data = JSON.parse(decodeURIComponent(escape(bytes)));
-          var changed = mergeCloudData(data);
-          if (changed) {
-            syncToDOM();
-            saveToLocalStorage();
-            showToast('📥 收到队友更新', 'success');
-          }
-          cloudFileSHA = fresh.sha;
-          cloudLastKnownSHA = fresh.sha;
-          cloudLastSyncTime = new Date();
+          if (mergeCloudData(data)) { syncToDOM(); saveToLocalStorage(); showToast('📥 收到队友更新', 'success'); }
+          cloudFileSHA = fresh.sha; cloudLastKnownSHA = fresh.sha; cloudLastSyncTime = new Date();
           updateStatusBar();
         }
       }
-    } catch(e) { /* silent */ }
+    } catch(e) { cloudPollFail++; }
   }, CLOUD_POLL_MS);
 }
 
 
 
+
+var _pollFailures = 0, _pollLastAttempt = 0;
+
 function updateStatusBar() {
-  const dot = $('#statusDot');
-  const text = $('#statusText');
-  const time = $('#saveTime');
-  const cloudStatus = $('#cloudStatus');
+  var dot = $('#statusDot'), text = $('#statusText'), time = $('#saveTime'), cloudStatus = $('#cloudStatus');
+  var token = getCloudToken();
+  var lastSyncHtml = '';
 
+  if (cloudPollFail > 2) {
+    // Poll failing — show warning
+    lastSyncHtml = ' <span style="color:#e74c3c">⚠️ 轮询异常</span>';
+  } else if (cloudLastSyncTime) {
+    var ago = Math.round((Date.now() - cloudLastSyncTime.getTime()) / 1000);
+    var agoStr = ago < 60 ? ago + '秒前' : ago < 3600 ? Math.round(ago/60) + '分钟前' : Math.round(ago/3600) + '小时前';
+    lastSyncHtml = ' <span style="color:' + (ago < 30 ? 'var(--success)' : ago < 300 ? 'var(--warn)' : '#e74c3c') + '">' + agoStr + '同步</span>';
+  }
 
-  const token = getCloudToken();
   if (token) {
-    dot.className = 'dot green';
-    if (fileHandle) {
-      text.innerHTML = '📁 自动同步至 <span class="file-name">' + fileHandle.name + '</span> + ☁️ 团队云同步';
-    } else {
-      text.textContent = '☁️ 团队云同步已开启 — 团队成员数据实时共享';
-    }
-    // Show cloud status
-    if (cloudSaving) {
-      cloudStatus.style.display = 'inline';
-      cloudStatus.textContent = '☁️ 同步中…';
-      cloudStatus.style.color = 'var(--warn)';
-    } else if (cloudLastSyncTime) {
-      cloudStatus.style.display = 'inline';
-      cloudStatus.textContent = '☁️ 已同步 ' + cloudLastSyncTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      cloudStatus.style.color = 'var(--success)';
-    }
+    dot.className = 'dot green pulse';
+    text.innerHTML = '☁️ 团队同步已开启 · 每 5s 自动拉取' + lastSyncHtml + ' <button onclick="refreshCloud()" style="margin-left:6px;padding:2px 10px;font-size:12px;cursor:pointer;border:1px solid var(--primary);border-radius:4px;background:transparent;color:var(--primary)">🔄 刷新</button>';
+    if (cloudSaving) { cloudStatus.style.display = 'inline'; cloudStatus.textContent = '☁️ 推送中…'; cloudStatus.style.color = 'var(--warn)'; }
+    else if (cloudLastSyncTime) { cloudStatus.style.display = 'inline'; cloudStatus.textContent = ''; }
   } else {
-    if (fileHandle) {
-      dot.className = 'dot green';
-      text.innerHTML = '📁 自动同步至 <span class="file-name">' + fileHandle.name + '</span>（放在网盘目录即可跨电脑同步）';
-    } else {
-      const hasData = localStorage.getItem(STORAGE_KEY);
-      dot.className = hasData ? 'dot orange' : 'dot gray';
-      text.textContent = hasData
-        ? '💻 数据保存在浏览器本地（换电脑会丢失，请点「☁️ 团队同步」或「设置同步文件」）'
-        : '未连接同步文件 — 数据仅保存在当前浏览器';
-    }
-    cloudStatus.style.display = 'none';
+    dot.className = 'dot yellow';
+    text.innerHTML = '⚠️ 未设置团队同步 Token <button onclick="showSyncDialog()" style="margin-left:6px;padding:2px 10px;font-size:12px;cursor:pointer;border:1px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff">设置</button>';
   }
 
-  if (lastSaveTime) {
-    time.textContent = '上次保存: ' + lastSaveTime.toLocaleTimeString('zh-CN');
-  } else {
-    time.textContent = '';
-  }
+  if (lastSaveTime) { time.style.display = 'inline'; time.textContent = '💾 ' + lastSaveTime.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}); }
 }
 
 function setupSyncDialog() {
@@ -2045,34 +1973,21 @@ function setupSyncDialog() {
 const _origAutoSave = autoSave;
 autoSave = function() {
   _origAutoSave();
-  const token = getCloudToken();
-  if (token) scheduleCloudSave();
+  if (getCloudToken()) flushCloud();
 };
 
 // ── manual save ──────────────────────────────────────
 async function manualSave() {
-  const btn = $("#manualSaveBtn");
-  btn.textContent = "⏳ 保存中…";
-  btn.disabled = true;
+  var btn = $('#manualSaveBtn');
+  btn.textContent = '⏳ 保存中…'; btn.disabled = true;
   try {
     saveToLocalStorage();
-    if (fileHandle) {
-      await writeToFileNow(fileHandle);
-    }
-    const token = getCloudToken();
-    if (token) {
-      const data = collectAllData();
-      data.savedAt = new Date().toISOString();
-      data.cloudSync = true;
-      await saveToCloud(data);
-    }
-    btn.textContent = "✅ 已保存";
-    setTimeout(() => { btn.textContent = "💾 保存"; btn.disabled = false; }, 1500);
-  } catch (e) {
-    btn.textContent = "❌ 失败";
-    setTimeout(() => { btn.textContent = "💾 保存"; btn.disabled = false; }, 1500);
-  }
-}
+    if (fileHandle) { await writeToFileNow(fileHandle); }
+    if (getCloudToken()) { await saveToCloud(buildCloudPayload(), 0); }
+    btn.textContent = '✅ 已保存';
+    setTimeout(function() { btn.textContent = '💾 保存'; btn.disabled = false; }, 1500);
+    updateStatusBar();
+  } catch(e) { btn.textContent = '❌ 失败'; setTimeout(function(){ btn.textContent='💾 保存'; btn.disabled=false; }, 2000); }
 
 // ── init ────────────────────────────────────────────────
 async function init() {
@@ -2082,19 +1997,19 @@ async function init() {
   buildCards();
   checkFileAPI();
   $("#manualSaveBtn").addEventListener("click", manualSave);
-  window.addEventListener('beforeunload', () => { 
+  window.addEventListener('beforeunload', function() { 
     try { saveToLocalStorage(); } catch(e) {} 
     var token = getCloudToken();
-    if (token) {
-      // Synchronous push on close (keep-alive XHR)
-      var payload = buildCloudPayload();
-      var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-      var xhr = new XMLHttpRequest();
-      xhr.open('PUT', 'https://api.github.com/repos/maxiao871/daily-report/contents/daily-report-shared.json', false);
-      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
-      try { xhr.send(JSON.stringify({message:'chore: close-save',content:encoded,sha:cloudFileSHA||null})); } catch(e) {}
+    if (token && cloudFileSHA) {
+      try {
+        var payload = buildCloudPayload();
+        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+        var xhr = new XMLHttpRequest();
+        xhr.open('PUT', 'https://api.github.com/repos/maxiao871/daily-report/contents/daily-report-shared.json', false);
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify({message:'close-save',content:encoded,sha:cloudFileSHA}));
+      } catch(e) {}
     }
   });
   document.addEventListener('visibilitychange', () => { 
