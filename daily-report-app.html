@@ -1594,25 +1594,18 @@ function collapseAll() {
 // ── Cloud Sync (GitHub-based) ────────────────────────────
 const CLOUD_FILE = 'daily-report-shared.json';
 const CLOUD_TOKEN_KEY = 'cloudSyncToken_v3';
-const CLOUD_POLL_MS = 15000; // poll every 15s for updates from others
-
 let cloudToken = null;
 let cloudFileSHA = null;
 let cloudLastSyncTime = null;
 let cloudPollingTimer = null;
 let cloudSaving = false;
 let cloudPendingSave = false;
-let cloudPollTimer = null;
-
-// Track the last SHA we synced from so we only notify when content actually changed
 let cloudLastKnownSHA = null;
-let cloudHasChanges = false; // flag: form data changed since last cloud save
 
 function getCloudToken() {
   if (!cloudToken) cloudToken = localStorage.getItem(CLOUD_TOKEN_KEY);
   return cloudToken;
 }
-
 
 function setCloudToken(token) {
   cloudToken = token;
@@ -1629,101 +1622,232 @@ function clearCloudToken() {
   cloudPollingTimer = null;
 }
 
+const CLOUD_POLL_MS = 5000; // poll every 5s for updates from others
+const CLOUD_DEBOUNCE_MS = 300;  // push after 300ms of inactivity
+
+// ── Merging helpers ──────────────────────────────────
+
+/** Merge cloud data into local: keep local edits, fill in missing people */
+function mergeCloudData(cloudData) {
+  var changed = false;
+  // Summary: fill only if local field is empty
+  if (cloudData.summary) {
+    var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
+    summaryIds.forEach(function(k) {
+      if (cloudData.summary[k] !== undefined && cloudData.summary[k] !== null) {
+        var el = document.getElementById(k);
+        if (el && !el.value) { el.value = cloudData.summary[k]; changed = true; }
+      }
+    });
+  }
+  // People: merge by name
+  if (cloudData.people && Array.isArray(cloudData.people)) {
+    for (var ci = 0; ci < cloudData.people.length; ci++) {
+      var cp = cloudData.people[ci];
+      if (!cp.name) continue;
+      // Find matching local person
+      var matched = -1;
+      for (var li = 0; li < 4; li++) {
+        if (personData[li].name && personData[li].name === cp.name) { matched = li; break; }
+        if (!personData[li].name && matched < 0) { matched = li; } // empty slot
+      }
+      if (matched < 0) continue; // no room
+      personData[matched].name = cp.name;
+      for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
+        var f = PERSON_FIELDS[fi];
+        // Only fill remote value if local is empty
+        if (cp[f.id] !== undefined && cp[f.id] !== null && cp[f.id] !== '') {
+          if (!personData[matched][f.id] || personData[matched][f.id] === '') {
+            personData[matched][f.id] = cp[f.id];
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+  return changed;
+}
+
+/** Collect data from all person cards (what's in the DOM + personData) */
+function collectPersonData() {
+  var result = [];
+  for (var i = 0; i < 4; i++) {
+    var obj = { name: personData[i].name || DEFAULT_NAMES[i] };
+    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
+      var f = PERSON_FIELDS[fi];
+      var el = document.getElementById('p' + i + '_' + f.id);
+      if (el) obj[f.id] = el.value;
+      else obj[f.id] = personData[i][f.id] || '';
+    }
+    result.push(obj);
+  }
+  return result;
+}
+
+/** Collect summary data from DOM */
+function collectSummaryData() {
+  var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
+  var obj = {};
+  summaryIds.forEach(function(k) {
+    var el = document.getElementById(k);
+    obj[k] = el ? el.value : '';
+  });
+  return obj;
+}
+
+/** Full data payload for cloud */
+function buildCloudPayload() {
+  return {
+    version: 3,
+    savedAt: new Date().toISOString(),
+    savedBy: (personData[0] && personData[0].name) || DEFAULT_NAMES[0],
+    summary: collectSummaryData(),
+    people: collectPersonData()
+  };
+}
+
+// ── Cloud API ──────────────────────────────────────
+
 async function cloudAPI(method, path, body) {
-  const token = getCloudToken();
+  var token = getCloudToken();
   if (!token) return null;
-  const url = 'https://api.github.com' + path;
-  const opts = {
-    method,
+  var url = 'https://api.github.com' + path;
+  var opts = {
+    method: method,
     headers: {
       Authorization: 'Bearer ' + token,
       Accept: 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
-      'User-Agent': 'daily-report-app/1.0'
+      'User-Agent': 'daily-report-app/2.0'
     },
     signal: AbortSignal.timeout(8000)
   };
   if (body) opts.body = JSON.stringify(body);
-  const res = await fetch(url, opts);
+  var res = await fetch(url, opts);
   if (res.status === 401) throw new Error('TOKEN_INVALID');
   if (res.status === 404) return null;
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    var err = await res.json().catch(function() { return {}; });
     throw new Error(err.message || 'API_ERROR_' + res.status);
   }
-  if (method === 'GET') return res.json();
   return res.json();
 }
 
 async function loadFromCloud() {
-  const token = getCloudToken();
+  var token = getCloudToken();
   if (!token) return null;
   try {
-    const data = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
+    var data = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
     if (!data) return null;
     cloudFileSHA = data.sha;
-    // Update last known SHA to detect real changes
     if (cloudLastKnownSHA === null) cloudLastKnownSHA = data.sha;
-    const bytes = atob(data.content);
+    var bytes = atob(data.content);
     return JSON.parse(decodeURIComponent(escape(bytes)));
   } catch (e) {
     if (e.message === 'TOKEN_INVALID') {
       showToast('🔑 团队同步 Token 已过期，请重新设置', 'error');
       return { error: 'TOKEN_INVALID' };
     }
-    showToast('⚠️ 云端连接失败，请检查网络', 'warn');
     return { error: 'NETWORK' };
   }
 }
 
+// ── Save to cloud (immediate + queueing) ──────────────
+
+var cloudSaveQueue = null;
+var cloudSaveRetries = 0;
+
 async function saveToCloud(data) {
-  const token = getCloudToken();
+  var token = getCloudToken();
   if (!token) return false;
+  if (cloudSaving) { cloudPendingSave = true; return false; }
   cloudSaving = true;
   try {
-    const content = JSON.stringify(data, null, 2);
-    const encoded = btoa(unescape(encodeURIComponent(content)));
-    const body = {
-      message: 'chore: auto-sync daily report data',
-      content: encoded,
-    };
+    var content = JSON.stringify(data, null, 2);
+    var encoded = btoa(unescape(encodeURIComponent(content)));
+    var body = { message: 'chore: auto-sync daily report', content: encoded };
     if (cloudFileSHA) body.sha = cloudFileSHA;
-    const result = await cloudAPI('PUT', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`, body);
+    var result = await cloudAPI('PUT', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE, body);
     if (!result) { cloudSaving = false; return false; }
     cloudFileSHA = result.content.sha;
     cloudLastKnownSHA = result.content.sha;
     cloudLastSyncTime = new Date();
+    cloudSaveRetries = 0;
     cloudSaving = false;
-    cloudHasChanges = false;
+    if (cloudPendingSave) { cloudPendingSave = false; scheduleCloudSave(); }
     updateStatusBar();
     return true;
   } catch (e) {
     cloudSaving = false;
+    if (cloudSaveRetries < 2) { cloudSaveRetries++; await saveToCloud(collectAllData()); }
     console.warn('Cloud save failed:', e.message);
     return false;
   }
 }
 
+// ── Debounced cloud save triggered by edits ────────────
 
-let cloudSaveTimer = null;
-async function scheduleCloudSave() {
-  cloudHasChanges = true;
+var cloudSaveTimer = null;
+function scheduleCloudSave() {
   clearTimeout(cloudSaveTimer);
-  cloudSaveTimer = setTimeout(async () => {
-    if (cloudSaving) { cloudPendingSave = true; return; }
-    const data = collectAllData();
-    const ok = await saveToCloud(data);
-    if (!ok) {
-      // retry once after 3s
-      await new Promise(r => setTimeout(r, 3000));
-      await saveToCloud(collectAllData());
-    }
-    if (cloudPendingSave) {
-      cloudPendingSave = false;
-      scheduleCloudSave();
-    }
-  }, 3000);
+  cloudSaveTimer = setTimeout(function() {
+    unlessSavingCloud(buildCloudPayload());
+  }, CLOUD_DEBOUNCE_MS);
 }
+
+async function unlessSavingCloud(data) {
+  if (cloudSaving) { cloudPendingSave = true; return; }
+  await saveToCloud(data);
+}
+
+// ── Polling: always check, merge intelligently ─────────
+
+async function startCloudPolling() {
+  if (cloudPollingTimer) clearInterval(cloudPollingTimer);
+  var token = getCloudToken();
+  if (!token) return;
+
+  // Phase A: immediate first pull on new device (local merge, don't overwrite)
+  try {
+    var first = await loadFromCloud();
+    if (first && !first.error) {
+      mergeCloudData(first);
+      syncToDOM();
+      saveToLocalStorage();
+      cloudLastSyncTime = new Date();
+      updateStatusBar();
+    }
+  } catch(e) { /* defer to poll */ }
+
+  // Phase B: start polling
+  cloudPollingTimer = setInterval(async function() {
+    var tk = getCloudToken();
+    if (!tk) { clearInterval(cloudPollingTimer); return; }
+    try {
+      var meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
+      if (!meta) return;
+      if (meta.sha !== cloudLastKnownSHA) {
+        // Remote changed — pull and merge (fill empty fields only)
+        var fresh = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
+        if (fresh) {
+          var bytes = atob(fresh.content);
+          var data = JSON.parse(decodeURIComponent(escape(bytes)));
+          var changed = mergeCloudData(data);
+          if (changed) {
+            syncToDOM();
+            saveToLocalStorage();
+            showToast('📥 收到队友更新', 'success');
+          }
+          cloudFileSHA = fresh.sha;
+          cloudLastKnownSHA = fresh.sha;
+          cloudLastSyncTime = new Date();
+          updateStatusBar();
+        }
+      }
+    } catch(e) { /* silent */ }
+  }, CLOUD_POLL_MS);
+}
+
 
 
 function updateStatusBar() {
@@ -1852,44 +1976,7 @@ function setupSyncDialog() {
   });
 }
 
-async function startCloudPolling() {
-  if (cloudPollingTimer) clearInterval(cloudPollingTimer);
-  // Always trust local data on startup — do NOT pull from cloud.
-  // Cloud sync is for: (a) pushing local changes, (b) polling for OTHER people's changes.
-  // Memorize current cloud SHA so polling detects only real external changes.
-  try {
-    const meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/'+CLOUD_FILE);
-    if (meta) {
-      cloudFileSHA = meta.sha;
-      cloudLastKnownSHA = meta.sha;
-      cloudLastSyncTime = new Date();
-    }
-  } catch(e) { /* network — will retry in poll */ }
-  cloudPollingTimer = setInterval(async () => {
-    const token = getCloudToken();
-    if (!token) { clearInterval(cloudPollingTimer); return; }
-    try {
-      const meta = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
-      if (!meta) return;
-      // If SHA changed and form has no unsaved changes, pull
-      if (cloudLastKnownSHA && meta.sha !== cloudLastKnownSHA && !cloudHasChanges) {
-        const fresh = await cloudAPI('GET', `/repos/maxiao871/daily-report/contents/${CLOUD_FILE}`);
-        if (fresh) {
-          const bytes = atob(fresh.content);
-          const data = JSON.parse(decodeURIComponent(escape(bytes)));
-          applyDataToForm(data);
-          syncToDOM();
-          saveToLocalStorage();
-          cloudFileSHA = meta.sha;
-          cloudLastKnownSHA = meta.sha;
-          cloudLastSyncTime = new Date();
-          updateStatusBar();
-          showToast('📥 收到队友更新，已同步', 'success');
-        }
-      }
-    } catch (e) { /* silent */ }
-  }, CLOUD_POLL_MS);
-}
+
 
 // Override autoSave to include cloud
 const _origAutoSave = autoSave;
