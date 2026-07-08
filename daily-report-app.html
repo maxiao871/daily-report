@@ -1926,52 +1926,45 @@ async function manualSave() {
 
 // ── init ────────────────────────────────────────────────
 async function init() {
+  let _initError = false;
+  
+  // Phase 0: Bind critical UI immediately (before async ops that may throw)
   buildCards();
   checkFileAPI();
+  $("#manualSaveBtn").addEventListener("click", manualSave);
+  window.addEventListener('beforeunload', () => { try { saveToLocalStorage(); } catch(e) {} });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { try { saveToLocalStorage(); } catch(e) {} } });
+  document.addEventListener("keydown", (e) => { if ((e.ctrlKey||e.metaKey)&&e.key==="s") { e.preventDefault(); manualSave(); } });
 
-  // 1. Try file handle from IndexedDB
-  if (hasFileAPI) {
-    const handle = await recallFileHandle();
-    if (handle) {
-      const permOk = await verifyHandlePermission(handle);
-      if (permOk) {
-        const fileData = await readFromFile(handle);
-        if (fileData) {
-          fileHandle = handle;
-          applyDataToForm(fileData);
-          // Save file data to localStorage ONLY if localStorage is empty or older
-          // This prevents old file data from overwriting newer browser data
-          const localRaw = localStorage.getItem(STORAGE_KEY);
-          if (!localRaw) {
-            saveToLocalStorage(); // No local data yet, mirror file
-          } else {
-            try {
+  // Phase 1: File System API (best-effort, ignore errors)
+  try {
+    if (hasFileAPI) {
+      const handle = await recallFileHandle();
+      if (handle) {
+        const permOk = await verifyHandlePermission(handle);
+        if (permOk) {
+          const fileData = await readFromFile(handle);
+          if (fileData) {
+            fileHandle = handle;
+            applyDataToForm(fileData);
+            const localRaw = localStorage.getItem(STORAGE_KEY);
+            if (!localRaw) { saveToLocalStorage(); }
+            else { try {
               const localData = JSON.parse(localRaw);
               const fileTime = fileData.savedAt || '1970';
               const localTime = localData.savedAt || '1970';
-              if (fileTime > localTime) {
-                // File is newer → keep file data (already applied above)
-                saveToLocalStorage();
-              } else {
-                // localStorage is newer → restore from it
-                applyDataToForm(localData);
-              }
-            } catch(e) {
-              saveToLocalStorage(); // localStorage corrupt, mirror file
-            }
-          } // mirror
+              if (fileTime > localTime) { saveToLocalStorage(); }
+              else { applyDataToForm(localData); }
+            } catch(e) { saveToLocalStorage(); } }
+          }
         }
       }
     }
-  }
+  } catch(e) { console.warn('init: File API init failed', e); }
 
-  // 2. Fallback: load localStorage only if no file data loaded
-  if (!fileHandle) {
-    loadFromLocalStorage();
-    syncToDOM();
-  }
+  // Phase 2: localStorage or first-visit defaults
+  if (!fileHandle) { loadFromLocalStorage(); syncToDOM(); }
   if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
-    // First visit: seed defaults and save immediately
     $('#reportDate').value = '7.7';
     $('#monthLabel').value = '7月';
     for (let i = 0; i < DEFAULT_NAMES.length; i++) {
@@ -1980,59 +1973,35 @@ async function init() {
     saveToLocalStorage();
     syncToDOM();
   }
-
-  // 3. Sync DOM
   syncToDOM();
-
   updateStatusBar();
-  attachSummaryAutoSave();
-  startFlashInterval();
+ 
+  // Phase 3: remaining setup (all wrapped in try)
+  try { attachSummaryAutoSave(); } catch(e) { console.warn('attachSummaryAutoSave:', e); }
+  try { startFlashInterval(); } catch(e) { console.warn('startFlashInterval:', e); }
+  
+  try {
+    $("#generateBtn").addEventListener("click", generate);
+    $("#copyBtn").addEventListener("click", copyResult);
+    $("#downloadBtn").addEventListener("click", downloadResult);
+    $("#sampleBtn").addEventListener("click", fillSample);
+    $("#clearBtn").addEventListener("click", clearAll);
+    $("#collapseAll").addEventListener("click", collapseAll);
+    $("#pickFileBtn").addEventListener("click", pickSaveFile);
+    $("#exportBtn").addEventListener("click", exportJSON);
+    $("#importBtn").addEventListener("click", importJSON);
+    $("#importFile").addEventListener("change", handleImportFile);
+  } catch(e) { console.warn('init: button binding failed', e); }
 
-  // Buttons
-  $("#generateBtn").addEventListener("click", generate);
-  $("#copyBtn").addEventListener("click", copyResult);
-  $("#downloadBtn").addEventListener("click", downloadResult);
-  $("#sampleBtn").addEventListener("click", fillSample);
-  $("#manualSaveBtn").addEventListener("click", manualSave);
-  $("#clearBtn").addEventListener("click", clearAll);
-  $("#collapseAll").addEventListener("click", collapseAll);
-  $("#pickFileBtn").addEventListener("click", pickSaveFile);
-  $("#exportBtn").addEventListener("click", exportJSON);
-  $("#importBtn").addEventListener("click", importJSON);
-  $("#importFile").addEventListener("change", handleImportFile);
+  try { initGlobalPaste(); } catch(e) { console.warn('initGlobalPaste:', e); }
+  try { setupSyncDialog(); } catch(e) { console.warn('setupSyncDialog:', e); }
 
-  // Save everything before closing
-  let _cleanup = () => {
-    try {
-      saveToLocalStorage();
-      // Try synchronous localStorage only - async file writes won't complete on unload
-      // The periodic autoSave (every 15s) already handles file writes
-    } catch(e) {}
-  };
-  window.addEventListener('beforeunload', _cleanup);
-  // Also save on visibility change (tab switch, minimize)
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) _cleanup();
-  });
+  // Phase 4: Cloud (best-effort)
+  try { if (getCloudToken()) startCloudPolling(); } catch(e) { console.warn('startCloudPolling:', e); }
 
-  initGlobalPaste();
-  setupSyncDialog();
-  // Ctrl+S / Cmd+S manual save
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault();
-      manualSave();
-    }
-  });
-  // If cloud token exists, start polling (polling now compares timestamps)
-  if (getCloudToken()) {
-    startCloudPolling();
-  }
+  // Periodic safety save
+  setInterval(() => { try { if (localStorage.getItem(STORAGE_KEY)) saveToLocalStorage(); } catch(e) {} }, 15000);
 
-  // Periodic safety save (every 15 seconds)
-  setInterval(() => {
-    if (localStorage.getItem(STORAGE_KEY)) saveToLocalStorage();
-  }, 15000);
 }
 
 document.addEventListener("DOMContentLoaded", init);
