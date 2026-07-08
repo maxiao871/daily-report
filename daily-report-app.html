@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>每日汇报填写汇总工具</title>
+  <title>每日汇报填写汇总工具</title>
   <style>
 :root {
   --bg: #f4f5f8;
@@ -14,10 +14,6 @@
   --brand: #0b7f74;
   --brand-hover: #09685e;
   --soft: #ecf7f5;
-  --warn: #e67e22;
-  --success: #27ae60;
-  --paste-bg: #fff8e7;
-  --paste-border: #f0d78c;
   --radius: 8px;
 }
 
@@ -31,7 +27,7 @@ body {
   font-size: 14px;
 }
 
-input, textarea, button, select { font: inherit; }
+input, textarea, button { font: inherit; }
 
 .shell {
   width: min(1500px, calc(100vw - 32px));
@@ -45,14 +41,14 @@ input, textarea, button, select { font: inherit; }
   justify-content: space-between;
   align-items: flex-end;
   gap: 20px;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
 
 h1 { font-size: 22px; margin: 0; }
 h2 { font-size: 15px; margin: 0; }
 .topbar p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 
-.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 button {
   height: 36px;
@@ -73,41 +69,6 @@ button.secondary {
 }
 button.secondary:hover { background: var(--soft); }
 button.small { height: 30px; font-size: 12px; padding: 0 12px; }
-button.warn-btn {
-  background: #fff;
-  color: var(--warn);
-  border-color: var(--warn);
-}
-button.warn-btn:hover { background: #fef5ec; }
-button.paste-btn {
-  background: #fff;
-  color: #b8860b;
-  border-color: #d4a017;
-}
-button.paste-btn:hover { background: #fff8e7; }
-
-/* status bar */
-.status-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 12px;
-  margin-bottom: 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  min-height: 32px;
-  flex-wrap: wrap;
-}
-.status-bar .dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-.dot.green { background: var(--success); }
-.dot.orange { background: var(--warn); }
-.dot.gray { background: #94a3b8; }
-.status-bar .file-name { font-weight: 600; color: var(--brand); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.status-bar .save-time { color: var(--muted); font-size: 11px; margin-left: auto; }
 
 /* summary */
 .summary-box {
@@ -197,19 +158,16 @@ button.paste-btn:hover { background: #fff8e7; }
   background: transparent;
 }
 .person-card-header .name-input:focus { outline: none; }
-.person-card-header .toggle-btn,
-.person-card-header .paste-toggle {
+.person-card-header .toggle-btn {
   border: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 8px;
   height: auto;
 }
-.person-card-header .paste-toggle { color: #b8860b; font-weight: 600; }
-.person-card-header .toggle-btn:hover,
-.person-card-header .paste-toggle:hover { color: var(--text); }
+.person-card-header .toggle-btn:hover { color: var(--text); }
 
 .person-body {
   display: grid;
@@ -254,176 +212,6 @@ button.paste-btn:hover { background: #fff8e7; }
   min-height: 54px;
 }
 
-/* paste area */
-.paste-area {
-  display: none;
-  padding: 10px 12px;
-  border-top: 1px dashed var(--paste-border);
-  background: var(--paste-bg);
-}
-.paste-area.show { display: block; }
-.paste-area textarea {
-  width: 100%;
-  min-height: 90px;
-  border: 1px solid var(--paste-border);
-  border-radius: 5px;
-  padding: 8px 10px;
-  font-size: 12px;
-  line-height: 1.5;
-  resize: vertical;
-  background: #fffdf5;
-  outline: none;
-  margin-bottom: 6px;
-}
-.paste-area textarea:focus { border-color: #d4a017; box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12); }
-.paste-area .paste-hint {
-  font-size: 11px;
-  color: #a0843b;
-  margin-bottom: 6px;
-  line-height: 1.5;
-}
-.paste-area .paste-actions {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.paste-area .paste-actions button {
-  height: 28px;
-  font-size: 12px;
-  padding: 0 12px;
-  border-color: #b8860b;
-  background: #b8860b;
-  color: #fff;
-}
-.paste-area .paste-actions button:hover { background: #9a7209; }
-.paste-area .paste-actions button.secondary { background: #fff; color: #b8860b; }
-.paste-area .paste-msg { font-size: 11px; color: var(--success); margin-left: 8px; display: none; }
-
-/* hide file input */
-#importFile { display: none; }
-
-/* cloud sync overlay */
-.sync-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  z-index: 10000;
-  align-items: center;
-  justify-content: center;
-}
-.sync-overlay.show { display: flex; }
-.sync-dialog {
-  background: #fff;
-  border-radius: 10px;
-  padding: 24px;
-  width: min(440px, calc(100vw - 40px));
-  box-shadow: 0 8px 30px rgba(0,0,0,0.18);
-}
-.sync-dialog h3 { margin: 0 0 8px; font-size: 16px; }
-.sync-dialog p { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.6; }
-.sync-dialog label { display: block; font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 4px; }
-.sync-dialog input {
-  width: 100%;
-  height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0 10px;
-  font-size: 13px;
-}
-.sync-dialog input:focus { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px rgba(11,127,116,0.1); }
-.sync-dialog .sync-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  justify-content: flex-end;
-}
-.sync-dialog .sync-status {
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  margin-bottom: 12px;
-}
-.sync-dialog .sync-status.ok { background: #eaf7ee; color: #1a7a3a; }
-.sync-dialog .sync-status .dot-sync { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
-.sync-dialog .sync-status .dot-sync.green { background: var(--success); }
-
-/* cloud sync button active state */
-button.cloud-btn { border-color: #2196F3; background: #2196F3; color: #fff; }
-button.cloud-btn:hover { background: #1976D2; }
-button.cloud-btn.active { border-color: var(--success); background: var(--success); }
-button.cloud-btn.active:hover { background: #1e8c4a; }
-
-/* global paste section */
-.paste-section {
-  border: 1px solid var(--paste-border);
-  border-radius: var(--radius);
-  background: var(--paste-bg);
-  margin-bottom: 14px;
-}
-.paste-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--paste-border);
-  background: #fef8e4;
-}
-.paste-section-header h2 { font-size: 14px; margin: 0; }
-.paste-section-body { padding: 14px; }
-.paste-section-body.collapsed { display: none; }
-.paste-section-body .paste-hint {
-  font-size: 12px;
-  color: #8b6914;
-  margin-bottom: 10px;
-  line-height: 1.6;
-}
-.paste-section-body .paste-hint code {
-  background: #fef3d0;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 11px;
-}
-.paste-section-body textarea {
-  width: 100%;
-  min-height: 160px;
-  border: 1px solid var(--paste-border);
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 13px;
-  line-height: 1.6;
-  resize: vertical;
-  background: #fffdf5;
-  outline: none;
-  margin-bottom: 10px;
-}
-.paste-section-body textarea:focus {
-  border-color: #d4a017;
-  box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.12);
-}
-.paste-section-body .paste-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.paste-section-body .paste-actions button {
-  height: 32px;
-  font-size: 13px;
-  padding: 0 16px;
-  border-color: #b8860b;
-  background: #b8860b;
-  color: #fff;
-}
-.paste-section-body .paste-actions button:hover { background: #9a7209; }
-.paste-section-body .paste-actions button.secondary { background: #fff; color: #b8860b; }
-.paste-section-body .paste-msg {
-  font-size: 12px;
-  color: var(--success);
-  margin-left: 8px;
-  display: none;
-}
-
 /* result */
 .result-section {
   border: 1px solid var(--line);
@@ -451,42 +239,6 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   outline: none;
 }
 
-/* save flash */
-@keyframes saveFlash { 0%{opacity:1} 100%{opacity:0} }
-.save-flash {
-  position: fixed;
-  top: 12px;
-  right: 20px;
-  background: var(--success);
-  color: #fff;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  z-index: 9999;
-  animation: saveFlash 2s forwards;
-  pointer-events: none;
-}
-
-/* toast */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1e293b;
-  color: #fff;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 13px;
-  z-index: 9999;
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; }
-.toast.success { background: var(--success); }
-.toast.error { background: #e74c3c; }
-
 @media (max-width: 980px) {
   .person-grid { grid-template-columns: 1fr; }
   .summary-grid { grid-template-columns: repeat(3, 1fr); }
@@ -495,6 +247,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   .summary-grid { grid-template-columns: 1fr; }
   .person-body { grid-template-columns: 1fr; }
 }
+
 </style>
 </head>
 <body>
@@ -503,52 +256,37 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   <header class="topbar">
     <div>
       <h1>每日汇报填写汇总</h1>
-      <p>四位伙伴分别填写，一键生成三个汇报板块 <span style="background:#e67e22;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:bold;">v7.8-18:48</span></p>
+      <p>四位伙伴分别填写，一键生成三个汇报板块　<span id="saveIndicator" style="color:#0b7f74;font-size:12px;font-weight:normal;display:none;">✓ 已自动保存</span>　<span id="cloudIndicator" style="color:#94a3b8;font-size:11px;"></span>　<span style="color:#94a3b8;font-size:11px;">v20250615</span></p>
     </div>
     <div class="actions">
-      <button id="pickFileBtn" type="button" class="secondary" title="连接本地JSON文件实现跨电脑同步（建议放网盘目录）">📁 设置同步文件</button>
-      <button id="exportBtn" type="button" class="secondary" title="下载完整数据备份">⬇ 导出备份</button>
-      <button id="importBtn" type="button" class="secondary" title="从备份文件���复数据">⬆ 导入恢复</button>
-      <input type="file" id="importFile" accept=".json" />
-      <button id="cloudSyncBtn" type="button" class="cloud-btn" title="团队多人实时共享数据">☁️ 团队同步</button>
+      <button id="cloudSyncBtn" type="button" class="secondary" onclick="syncToCloud().catch(()=>{alert('同步失败，请确保已登录腾讯文档')})">同步云端</button>
       <button id="sampleBtn" type="button" class="secondary">填入示例</button>
-      <button id="clearBtn" type="button" class="warn-btn">清空</button>
+      <button id="clearBtn" type="button" class="secondary">清空</button>
       <button id="generateBtn" type="button">生成汇报</button>
     </div>
   </header>
 
-  <!-- status bar -->
-  <div class="status-bar" id="statusBar">
-    <span class="dot orange" id="statusDot"></span>
-    <span id="statusText">未连接同步文件 — 数据仅保存在当前浏览器</span>
-    <span class="save-time" id="saveTime"></span>
-    <span id="cloudStatus" style="display:none; font-size:11px; margin-left:auto; color:var(--success);"></span>
-    <button id="manualSaveBtn" class="btn btn-mini" title="手动保存（Ctrl+S）">💾 保存</button>
-  </div>
-
   <details class="summary-box" open>
     <summary>团队汇总数据</summary>
     <div class="summary-grid">
-      <label>汇报日期<input id="reportDate" type="text" /></label>
-      <label>本月名称<input id="monthLabel" type="text" /></label>
-      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" /></label>
-      <label>今日承保万P<input id="todayUnderwrite" type="number" step="0.1" /></label>
-      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" /></label>
-      <label>本月累计承保万P<input id="monthUnderwrite" type="number" step="0.1" /></label>
-      <label>月目标万P<input id="monthTarget" type="number" step="0.1" /></label>
-      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" /></label>
-      <label>活动人力 目标/达成<input id="activityPeople" type="text" /></label>
-      <label>有效渠道 目标/达成<input id="channelCount" type="text" /></label>
-      <label>泰有鑫意月目标<input id="specialTarget" type="number" /></label>
-      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" /></label>
-      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" /></label>
-      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" /></label>
-      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" /></label>
-      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" /></label>
-      <label>今日新增活粉人数<input id="todayActiveFans" type="number" /></label>
-      <label>今日新增高P粉人数<input id="todayHighPFans" type="number" /></label>
-      <label>本月累计活粉人数<input id="monthActiveFans" type="number" /></label>
-      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" /></label>
+      <label>汇报日期<input id="reportDate" type="text" value="6.11" /></label>
+      <label>本月名称<input id="monthLabel" type="text" value="6月" /></label>
+      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" value="7.2" /></label>
+      <label>今日承保万P<input id="todayUnderwrite" type="number" step="0.1" value="19.2" /></label>
+      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" value="144.9" /></label>
+      <label>本月累计承保万P<input id="monthUnderwrite" type="number" step="0.1" value="296.8" /></label>
+      <label>月目标万P<input id="monthTarget" type="number" step="0.1" value="225" /></label>
+      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" value="6" /></label>
+      <label>活动人力 目标/达成<input id="activityPeople" type="text" value="120/96" /></label>
+      <label>有效渠道 目标/达成<input id="channelCount" type="text" value="6/5" /></label>
+      <label>泰有鑫意月目标<input id="specialTarget" type="number" value="10" /></label>
+      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" value="0" /></label>
+      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" value="0" /></label>
+      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" value="0" /></label>
+      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" value="11" /></label>
+      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" value="1" /></label>
+      <label>本月累计活粉人数<input id="monthActiveFans" type="number" value="0" /></label>
+      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" value="0" /></label>
     </div>
   </details>
 
@@ -558,25 +296,6 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
       <button id="collapseAll" type="button" class="secondary small">全部折叠</button>
     </div>
     <div class="person-grid" id="personGrid"></div>
-  </section>
-
-  <section class="paste-section" id="globalPasteSection">
-    <div class="paste-section-header">
-      <h2>📋 粘贴区</h2>
-      <button id="toggleGlobalPaste" type="button" class="secondary small">收起</button>
-    </div>
-    <div class="paste-section-body" id="globalPasteBody">
-      <div class="paste-hint">
-        💡 把伙伴发来的汇报文字粘进来，点击「解析填充」自动填入上方对应区域。<br>
-        支持：<code>名字：</code>区分多人 / <code>键：值</code> / 自由文本（自动识别数字）
-      </div>
-      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效������人数：10&#10;……"></textarea>
-      <div class="paste-actions">
-        <button id="globalPasteParseBtn" type="button">🔳 解析填充</button>
-        <button id="globalPasteClearBtn" type="button" class="secondary">清空粘贴区</button>
-        <span class="paste-msg" id="globalPasteMsg"></span>
-      </div>
-    </div>
   </section>
 
   <section class="result-section">
@@ -590,36 +309,9 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
     <textarea id="result" spellcheck="false" placeholder="点击「生成汇报」后结果出现在这里"></textarea>
   </section>
 
-  <div class="toast" id="toast"></div>
-
-  <!-- Cloud sync overlay -->
-  <div class="sync-overlay" id="syncOverlay">
-    <div class="sync-dialog">
-      <h3>☁️ 团队同步设置</h3>
-      <p>存入同一份数据到 GitHub，团队四人打开页面自动看到最新数据，实现跨电脑实时同步。</p>
-      <div id="syncTokenInfo" style="display:none">
-        <div id="syncTokenStatus" class="sync-status ok"><span class="dot-sync green"></span>已连接团队同步</div>
-        <div class="sync-actions">
-          <button id="syncDisconnectBtn" type="button" class="secondary">断开同步</button>
-          <button id="syncCloseBtn2" type="button">关闭</button>
-        </div>
-      </div>
-      <div id="syncTokenForm">
-        <p style="font-size:12px; color:var(--warn);">⚠ 需要一个 GitHub Fine-grained Token，范围限制为 <code>maxiao871/daily-report</code> 仓库 <code>Contents: Read & Write</code>，<a href="https://github.com/settings/tokens?type=beta" target="_blank">点此创建</a></p>
-        <label>GitHub Token</label>
-        <input id="syncTokenInput" type="password" placeholder="github_pat_..." autocomplete="off" />
-        <div class="sync-actions">
-          <button id="syncConnectBtn" type="button">连接同步</button>
-          <button id="syncCloseBtn" type="button" class="secondary">取消</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </main>
-
 <script>
-// ── helpers ──────────────────────────────────────────────
+﻿// ── helpers ──────────────────────────────────────────────
 const $ = (s, p) => (p || document).querySelector(s);
 const $$ = (s, p) => Array.from((p || document).querySelectorAll(s));
 const E = (tag, attrs = {}, children = []) => {
@@ -632,26 +324,6 @@ const E = (tag, attrs = {}, children = []) => {
   return el;
 };
 
-let toastTimer;
-function showToast(msg, type) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (type || '');
-  clearTimeout(toastTimer);
-  requestAnimationFrame(() => {
-    t.classList.add('show');
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-  });
-}
-
-function showSaveFlash() {
-  const el = document.createElement('div');
-  el.className = 'save-flash';
-  el.textContent = '💾 已自动保存';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2100);
-}
-
 // ── form field definitions per person ────────────────────
 const PERSON_FIELDS = [
   { id: "work",         label: "今日工作内容（每行一条）",   type: "textarea",  span: "full-span" },
@@ -661,6 +333,8 @@ const PERSON_FIELDS = [
   { id: "fansInterview", label: "有效面谈人数",    type: "number" },
   { id: "fansPlan",     label: "计划书递送份数",  type: "number" },
   { id: "fansNew",      label: "新增粉丝人数",    type: "number" },
+  { id: "fansActive",   label: "新增活粉人数",    type: "number" },
+  { id: "fansHighP",    label: "新增高P粉人数",   type: "number" },
   { id: "specialOnline",  label: "泰有鑫意今日线上品宣篇数", type: "number" },
   { id: "specialTrain",   label: "泰有鑫意今日线下培训场数", type: "number" },
   { id: "specialAct",     label: "泰有鑫意今日线下活动场数", type: "number" },
@@ -673,156 +347,100 @@ const PERSON_FIELDS = [
 const DEFAULT_NAMES = ["伙伴1","伙伴2","伙伴3","伙伴4"];
 const personData = DEFAULT_NAMES.map(() => ({}));
 
-// ── File System Access API ───────────────────────────────
-let fileHandle = null;
-let hasFileAPI = false;
-let lastSaveTime = null;
-let saveFlashTimer = null;
+// ---- Cloudflare Workers KV Cloud Sync ----
+// SETUP STEPS (free, ~10 min):
+// 1. Go to https://dash.cloudflare.com and register free account
+// 2. Left menu Workers > Create a Worker
+// 3. Paste the code from ---- CLOUDFLARE WORKER CODE ---- section at bottom
+// 4. Workers > KV > Create Namespace (e.g. dr-kv)
+// 5. Worker > Settings > Variables > KV Namespace Bindings:
+//    Variable name: KV | Namespace: dr-kv
+// 6. Save and Deploy, copy the Worker URL (e.g. https://xxx.workers.dev)
+// 7. Paste the URL below in workerUrl, save, and re-upload to GitHub
+const CLOUD = {
+  workerUrl: '',  // <- Paste your Worker URL here, e.g. 'https://daily-report.xxx.workers.dev'
+  isConfigured() { return !!this.workerUrl && this.workerUrl.startsWith('http'); },
+};
 
-function checkFileAPI() {
-  hasFileAPI = typeof window.showSaveFilePicker === 'function';
-  if (!hasFileAPI) {
-    $('#statusText').textContent = '⚠ 当前浏览器不支持文件同步（请用Chrome/Edge打开以实现跨电脑自动保存）';
-    $('#statusDot').className = 'dot orange';
-    // Still show localStorage as active
-    if (localStorage.getItem(STORAGE_KEY)) {
-      $('#statusText').textContent = '💻 数据已保存在浏览器本地（换电脑/浏览器会丢失，请点「导出备份」）';
+async function fetchFromCloud() {
+  if (!CLOUD.isConfigured()) return null;
+  try {
+    const r = await fetch(CLOUD.workerUrl + '/api/latest');
+    if (!r.ok) return null;
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+async function syncToCloud() {
+  if (!CLOUD.isConfigured()) return;
+  const ind = document.getElementById('cloudIndicator');
+  if (ind) { ind.textContent = 'Syncing...'; ind.style.color = '#f59e0b'; }
+  const personName = getCurrentPersonName();
+  const payload = { personName, data: { summary: buildSummaryData(), person: buildPersonData() } };
+  try {
+    const r = await fetch(CLOUD.workerUrl + '/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (r.ok) {
+      const j = await r.json();
+      if (ind) { ind.textContent = 'OK ' + j.at; ind.style.color = '#0b7f74'; }
+    } else {
+      if (ind) { ind.textContent = 'Sync failed'; ind.style.color = '#ef4444'; }
     }
+  } catch(e) {
+    if (ind) { ind.textContent = 'Net error'; ind.style.color = '#ef4444'; }
   }
 }
 
-const IDB_DB = 'dailyReportDB_v3';
-const IDB_STORE = 'fileHandle';
-
-function openIDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_DB, 1);
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess = (e) => resolve(e.target.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function storeFileHandle(handle) {
-  if (!hasFileAPI) return;
+async function loadFromCloud() {
+  if (!CLOUD.isConfigured()) return false;
   try {
-    const db = await openIDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(IDB_STORE, 'readwrite');
-      tx.objectStore(IDB_STORE).put(handle, 'current');
-      tx.oncomplete = () => { db.close(); resolve(); };
-      tx.onerror = () => { db.close(); reject(tx.error); };
-    });
-  } catch (e) {}
-}
-
-async function recallFileHandle() {
-  if (!hasFileAPI) return null;
-  try {
-    const db = await openIDB();
-    return new Promise((resolve) => {
-      const tx = db.transaction(IDB_STORE, 'readonly');
-      const req = tx.objectStore(IDB_STORE).get('current');
-      req.onsuccess = () => { db.close(); resolve(req.result || null); };
-      req.onerror = () => { db.close(); resolve(null); };
-    });
-  } catch (e) { return null; }
-}
-
-async function verifyHandlePermission(handle) {
-  if (!handle) return false;
-  const opts = { mode: 'readwrite' };
-  const state = await handle.queryPermission(opts);
-  if (state === 'granted') return true;
-  if (state === 'prompt') {
-    const result = await handle.requestPermission(opts);
-    return result === 'granted';
-  }
-  return false;
-}
-
-async function pickSaveFile() {
-  if (!hasFileAPI) {
-    showToast('当前浏览器不支持，请使用Chrome/Edge打开', 'error');
-    return;
-  }
-  try {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: 'daily-report-data.json',
-      types: [{ description: 'JSON Data', accept: { 'application/json': ['.json'] } }],
-    });
-    fileHandle = handle;
-    await storeFileHandle(handle);
-    // Write current data to new file
-    await writeToFileNow(handle);
-    updateStatusBar();
-    showToast('✓ 已连接: ' + handle.name + ' — 之后所有修改都会自动保存到此文件', 'success');
-  } catch (e) {
-    if (e.name !== 'AbortError') {
-      console.error('pickSaveFile:', e);
-      showToast('选择文件失败', 'error');
+    const r = await fetch(CLOUD.workerUrl + '/api/latest');
+    if (!r.ok) return false;
+    const cloud = await r.json();
+    if (!cloud.people) return false;
+    const currentName = getCurrentPersonName();
+    const myData = cloud.people[currentName];
+    if (!myData) return false;
+    if (myData.summary) {
+      Object.entries(myData.summary).forEach(([k, v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v || '';
+      });
     }
-  }
-}
-
-async function writeToFileNow(handle) {
-  if (!handle) return false;
-  try {
-    const data = collectAllData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    // Use createWritable for overwrite
-    const writable = await handle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    lastSaveTime = new Date();
-    scheduleSaveFlash();
-    updateStatusBar();
+    if (myData.person) {
+      personData[0].name = myData.person.name || DEFAULT_NAMES[0];
+      for (const f of PERSON_FIELDS) {
+        personData[0][f.id] = myData.person[f.id] || '';
+      }
+    }
+    saveToStorage();
     return true;
-  } catch (e) {
-    console.warn('writeToFile:', e);
+  } catch(e) {
+    console.error('loadFromCloud error:', e);
     return false;
   }
 }
 
-// Debounced file write (avoids hammering disk on every keystroke)
-let fileWriteTimer = null;
-function scheduleFileWrite() {
-  clearTimeout(fileWriteTimer);
-  fileWriteTimer = setTimeout(async () => {
-    if (fileHandle) {
-      const ok = await writeToFileNow(fileHandle);
-      if (!ok) {
-        const permOk = await verifyHandlePermission(fileHandle);
-        if (permOk) {
-          await writeToFileNow(fileHandle);
-        } else {
-          fileHandle = null;
-          showToast('⚠ 文件连接已断开，数据已存到浏览器暂存', 'error');
-          updateStatusBar();
-        }
-      }
-    }
-  }, 1200);
+function buildSummaryData() {
+  const ids = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
+  const s = {};
+  ids.forEach(id => { const el = document.getElementById(id); if (el) s[id] = el.value; });
+  return s;
 }
 
-async function readFromFile(handle) {
-  if (!handle) return null;
-  try {
-    const f = await handle.getFile();
-    const text = await f.text();
-    return JSON.parse(text);
-  } catch (e) { return null; }
+function buildPersonData() {
+  return { name: personData[0].name, ...Object.fromEntries(PERSON_FIELDS.map(f => [f.id, personData[0][f.id]])) };
 }
 
-// ── localStorage ──────────────────────────────────────���──
-const STORAGE_KEY = 'dailyReportData_v3';
-
-function collectAllData() {
-  return {
-    version: 3,
+function getCurrentPersonName() {
+  return personData[0].name || DEFAULT_NAMES[0];
+}
+const STORAGE_KEY = 'dailyReportData_v1';
+function saveToStorage() {
+  const data = {
     summary: {
       reportDate: $('#reportDate').value,
       monthLabel: $('#monthLabel').value,
@@ -842,343 +460,63 @@ function collectAllData() {
       offlineActivityMonth: $('#offlineActivityMonth').value,
       monthActiveFans: $('#monthActiveFans').value,
       monthHighPFans: $('#monthHighPFans').value,
-      todayActiveFans: $('#todayActiveFans').value,
-      todayHighPFans: $('#todayHighPFans').value,
     },
-    people: personData.map((p) => {
-      const r = { name: p.name };
-      for (const f of PERSON_FIELDS) r[f.id] = p[f.id];
-      return r;
+    people: personData.map((p, i) => {
+      const result = { name: p.name };
+      for (const f of PERSON_FIELDS) {
+        result[f.id] = p[f.id];
+      }
+      return result;
     }),
     result: $('#result').value,
     savedAt: new Date().toISOString()
   };
-}
-
-function saveToLocalStorage() {
-  try {
-    const data = collectAllData();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    lastSaveTime = new Date();
-    updateStatusBar();
-  } catch (e) {
-    // Storage full or private mode blocked
-    showToast('⚠ 浏览器存储失败，请清理缓存或选择同步文件', 'error');
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  // Show save indicator
+  const ind = document.getElementById('saveIndicator');
+  if (ind) {
+    ind.style.display = 'inline';
+    clearTimeout(ind._timer);
+    ind._timer = setTimeout(() => { ind.style.display = 'none'; }, 1500);
   }
+  // 同步到云端（不阻塞）
+  syncToCloud().catch(() => {});
 }
-
-function scheduleSaveFlash() {
-  clearTimeout(saveFlashTimer);
-  showSaveFlash();
-  saveFlashTimer = setTimeout(showSaveFlash, 10000); // show every 10s as confirmation
-}
-
-// ── Unified auto-save ────────────────────────────────────
-function autoSave() {
-  saveToLocalStorage();           // Always save to localStorage immediately
-  scheduleFileWrite();            // Debounced file write
-}
-
-// Also trigger flash periodically (every 30s if there's activity)
-let flashInterval = null;
-function startFlashInterval() {
-  if (flashInterval) clearInterval(flashInterval);
-  flashInterval = setInterval(() => {
-    // Only flash if we have localStorage data
-    if (localStorage.getItem(STORAGE_KEY)) showSaveFlash();
-  }, 30000);
-}
-
-function applyDataToForm(data) {
-  if (data.summary) {
-    Object.entries(data.summary).forEach(([k, v]) => {
-      const el = document.getElementById(k);
-      if (el) el.value = (v !== undefined && v !== null) ? v : '';
-    });
-  }
-  if (data.people) {
-    const count = Math.min(data.people.length, 4);
-    for (let i = 0; i < count; i++) {
-      const p = data.people[i];
-      personData[i].name = p.name || DEFAULT_NAMES[i];
-      for (const f of PERSON_FIELDS) {
-        personData[i][f.id] = (p[f.id] ?? '');
-      }
-    }
-  }
-  if (data.result) $('#result').value = data.result;
-}
-
-function syncToDOM() {
-  for (let i = 0; i < 4; i++) {
-    const card = $$(".person-card")[i];
-    if (!card) continue;
-    card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
-    for (const f of PERSON_FIELDS) {
-      const el = card.querySelector(`#p${i}_${f.id}`);
-      if (el) {
-        const val = personData[i][f.id];
-        el.value = (val !== undefined && val !== null) ? val : '';
-      }
-    }
-  }
-}
-
-function loadFromLocalStorage() {
+function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
+    if (!raw) return false;
     const data = JSON.parse(raw);
-    if (!data || data.version === undefined) throw new Error('invalid data');
-    applyDataToForm(data);
-  } catch(e) {
-    console.warn('loadFromLocalStorage failed:', e.message);
-    localStorage.removeItem(STORAGE_KEY);
+    // Load summary
+    if (data.summary) {
+      Object.entries(data.summary).forEach(([k, v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v || '';
+      });
+    }
+    // Load people
+    if (data.people && data.people.length === 4) {
+      data.people.forEach((p, i) => {
+        personData[i].name = p.name || DEFAULT_NAMES[i];
+        for (const f of PERSON_FIELDS) {
+          personData[i][f.id] = p[f.id] || '';
+        }
+      });
+    }
+    // Load result
+    if (data.result) {
+      $('#result').value = data.result;
+    }
+    return true;
+  } catch (e) {
+    console.error('Load failed:', e);
+    return false;
   }
 }
-
-// ── Paste parser ─────────────────────────────────────────
-function parsePasteText(raw, personIdx) {
-  const text = raw.trim();
-  if (!text) return {};
-
-  const result = {};
-  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(Boolean);
-
-  // Category buckets
-  let workLines = [];
-  let planLines = [];
-  let premiumLines = [];
-  let restLines = [];
-
-  // Keywords for routing
-  const workKeywords = ['今日工作', '工作内容', '工作', '今天', '今日'];
-  const planKeywords = ['明日工作计划', '明日计划', '明日', '明天计划', '明日工作', '明天'];
-  const premiumKeywords = ['保费预估', '保费', '明日保费', '预估保费', '预估'];
-
-  let currentSection = 'work'; // default bucket
-
-  for (const line of lines) {
-    // Detect section changes
-    const lc = line.toLowerCase().replace(/\s+/g, '');
-    if (workKeywords.some(k => lc.includes(k))) { currentSection = 'work'; continue; }
-    if (planKeywords.some(k => lc.includes(k))) { currentSection = 'plan'; continue; }
-    if (premiumKeywords.some(k => lc.includes(k))) { currentSection = 'premium'; continue; }
-
-    // Try key-value extraction
-    const kv = extractKV(line);
-    if (kv) {
-      // Map to field
-      const field = mapToField(kv.key);
-      if (field) {
-        result[field] = kv.value;
-        continue;
-      }
-    }
-
-    // Route remaining lines
-    if (currentSection === 'work') workLines.push(line);
-    else if (currentSection === 'plan') planLines.push(line);
-    else if (currentSection === 'premium') premiumLines.push(line);
-    else restLines.push(line);
-  }
-
-  // Assign accumulated lines
-  if (workLines.length && !result.work) result.work = workLines.join('\n');
-  if (planLines.length && !result.plan) result.plan = planLines.join('\n');
-  if (premiumLines.length && !result.premium) result.premium = premiumLines.join('\n');
-
-  // Second pass: try to extract numbers from unstructured lines
-  if (restLines.length) {
-    const extra = extractNumbersFromText(restLines.join('；'));
-    for (const [k, v] of Object.entries(extra)) {
-      if (result[k] === undefined || result[k] === '') result[k] = v;
-    }
-  }
-
-  return result;
-}
-
-function extractKV(line) {
-  // Match: "关键词" followed by optional colon "："、":"、"是" and then the value
-  const patterns = [
-    /^(.+?)[：:]\s*(.+)$/,
-    /^(.+?)\s*[是为]\s*(.+)$/,
-  ];
-  for (const re of patterns) {
-    const m = line.match(re);
-    if (m) return { key: m[1].trim(), value: m[2].trim() };
-  }
-  return null;
-}
-
-function mapToField(key) {
-  const k = key.replace(/\s+/g, '').toLowerCase();
-  const map = {
-    '渠道经营': 'channelWork', '渠道': 'channelWork',
-    '活动赋能': 'activity', '活动': 'activity',
-    '培训辅导': 'training', '培训': 'training',
-    '有效面谈人数': 'fansInterview', '有效面谈': 'fansInterview', '面谈人数': 'fansInterview', '面谈': 'fansInterview',
-    '计划书递送份数': 'fansPlan', '计划书': 'fansPlan', '计划书份数': 'fansPlan',
-    '新增粉丝人数': 'fansNew', '新增粉丝': 'fansNew', '粉丝人数': 'fansNew',
-    '新增活粉人数': 'fansActive', '新增活粉': 'fansActive', '活粉人数': 'fansActive',
-    '新增高p粉人数': 'fansHighP', '新增高p粉': 'fansHighP', '高p粉人数': 'fansHighP', '高p粉': 'fansHighP',
-    '线上品宣': 'specialOnline', '品宣篇数': 'specialOnline', '线上品宣篇数': 'specialOnline', '品宣': 'specialOnline',
-    '线下培训': 'specialTrain', '培训场数': 'specialTrain',
-    '线下活动': 'specialAct', '活动场数': 'specialAct',
-    '表现亮点': 'excellent', '亮点': 'excellent',
-    '需改进': 'improve', '改进': 'improve', '改进事项': 'improve',
-  };
-  return map[k] || null;
-}
-
-function extractNumbersFromText(text) {
-  const result = {};
-  // Extract numbers with context
-  const patterns = [
-    { re: /有效面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
-    { re: /面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
-    { re: /计划书[^0-9]*(\d+)\s*[份人]/i, field: 'fansPlan' },
-    { re: /新增粉丝[^0-9]*(\d+)\s*人/i, field: 'fansNew' },
-    { re: /新增活粉[^0-9]*(\d+)\s*人/i, field: 'fansActive' },
-    { re: /高P粉[^0-9]*(\d+)\s*人/i, field: 'fansHighP' },
-    { re: /线上品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
-    { re: /线下培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
-    { re: /线下活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
-    { re: /品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
-    { re: /培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
-    { re: /活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
-  ];
-  for (const { re, field } of patterns) {
-    const m = text.match(re);
-    if (m) result[field] = m[1];
-  }
-  return result;
-}
-
-// Fill person form fields from parsed data
-function fillPersonFromData(personIdx, data) {
-  const card = $$(".person-card")[personIdx];
-  if (!card) return;
-
-  for (const f of PERSON_FIELDS) {
-    if (data[f.id] !== undefined && data[f.id] !== '') {
-      const el = card.querySelector(`#p${personIdx}_${f.id}`);
-      if (el) {
-        el.value = data[f.id];
-        personData[personIdx][f.id] = data[f.id];
-      }
-    }
-  }
-  autoSave();
-}
-
-// ── Global paste parser (multi-person) ───────────────────
-function parseGlobalPaste(raw) {
-  const text = raw.trim();
-  if (!text) return [];
-
-  // Try to split by person delimiters: 1. / 一、/ 伙伴1：/ 姓名：
-  // Also handle numbered patterns like "1. 李红霞" or free text chunks
-  const personChunks = [];
-
-  // Pattern 1: Explicit person headers like "伙伴1：" "1." "一、"
-  const headerSplit = text.split(/\n(?=(?:伙伴)?[1-4][。、.：:)])|\n(?=[一二三四][、。.])|\n(?=\d[、.．]\s*\S{2,4}\n)/);
-
-  if (headerSplit.length > 1) {
-    for (const chunk of headerSplit) {
-      if (chunk.trim()) personChunks.push(chunk.trim());
-    }
-  } else {
-    // Pattern 2: Split by double newlines (each block is a person)
-    const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
-    if (blocks.length >= 2 && blocks.length <= 4) {
-      for (const b of blocks) personChunks.push(b.trim());
-    } else {
-      // Pattern 3: Look for name lines as delimiters
-      const namePattern = /(?:^|\n)([^\n]{2,4})(?:：|:)?\s*\n/g;
-      let lastIdx = 0;
-      let lastPerson = '';
-      let match;
-      const parts = [];
-      while ((match = namePattern.exec(text)) !== null) {
-        if (lastIdx > 0) parts.push(text.slice(lastIdx, match.index).trim());
-        lastIdx = match.index;
-      }
-      if (lastIdx > 0) parts.push(text.slice(lastIdx).trim());
-      if (parts.length >= 2 && parts.length <= 4) {
-        for (const p of parts) personChunks.push(p);
-      }
-    }
-  }
-
-  // If still no split, treat the whole thing as one person's data (fill person 1 only)
-  if (personChunks.length === 0) personChunks.push(text);
-
-  // Parse each chunk and map to person index
-  const results = [];
-  for (let i = 0; i < Math.min(personChunks.length, 4); i++) {
-    const data = parsePasteText(personChunks[i], i);
-    if (Object.keys(data).length > 0) {
-      results.push({ idx: i, data: data });
-    } else {
-      results.push({ idx: i, data: { work: personChunks[i] } });
-    }
-  }
-  return results;
-}
-
-function initGlobalPaste() {
-  // Toggle collapse
-  const toggleBtn = $('#toggleGlobalPaste');
-  const body = $('#globalPasteBody');
-  toggleBtn.addEventListener('click', () => {
-    const collapsed = body.classList.toggle('collapsed');
-    toggleBtn.textContent = collapsed ? '展开' : '收起';
-  });
-
-  // Parse button
-  $('#globalPasteParseBtn').addEventListener('click', () => {
-    const raw = $('#globalPasteArea').value.trim();
-    if (!raw) { showToast('请先粘贴内容', 'error'); return; }
-
-    const results = parseGlobalPaste(raw);
-    let totalFields = 0;
-
-    for (const r of results) {
-      fillPersonFromData(r.idx, r.data);
-      totalFields += Object.keys(r.data).filter(k => r.data[k] !== undefined && r.data[k] !== '').length;
-    }
-
-    const msg = $('#globalPasteMsg');
-    msg.style.display = 'inline';
-    msg.textContent = '✓ 已解析填充 ' + results.length + ' 人，共 ' + totalFields + ' 个字段';
-    setTimeout(() => { msg.style.display = 'none'; }, 3000);
-  });
-
-  // Clear button
-  $('#globalPasteClearBtn').addEventListener('click', () => {
-    $('#globalPasteArea').value = '';
-  });
-
-  // Auto-save paste area content
-  $('#globalPasteArea').addEventListener('input', autoSave);
-
-  // Store/restore paste area content in collectAllData
-  const origCollect = collectAllData;
-  collectAllData = function() {
-    const data = origCollect();
-    data.pasteAreaContent = $('#globalPasteArea').value;
-    return data;
-  };
-
-  const origApply = applyDataToForm;
-  applyDataToForm = function(data) {
-    origApply(data);
-    if (data.pasteAreaContent) {
-      $('#globalPasteArea').value = data.pasteAreaContent;
-    }
-  };
+function clearStorage() {
+  localStorage.removeItem(STORAGE_KEY);
+  const ind = document.getElementById('saveIndicator');
+  if (ind) ind.style.display = 'none';
 }
 
 // ── build person cards ──────────────────────────────────
@@ -1188,25 +526,12 @@ function buildCards() {
   for (let i = 0; i < 4; i++) {
     const card = E("div", { className: "person-card", "data-idx": i });
 
-    // Header with name + toggle + paste button
     const header = E("div", { className: "person-card-header" });
     const nameInput = E("input", {
       type: "text", className: "name-input", value: DEFAULT_NAMES[i],
-      onInput: (e) => { personData[i].name = e.target.value; autoSave(); },
+      onInput: (e) => { personData[i].name = e.target.value; saveToStorage(); },
     });
     personData[i].name = DEFAULT_NAMES[i];
-
-    const pasteToggle = E("button", {
-      type: "button", className: "paste-toggle", textContent: "📋 粘贴",
-      title: "展开快捷粘贴区，可直接粘贴伙伴发来的汇报文本自动解析填充",
-      onClick: (e) => {
-        e.stopPropagation();
-        const pasteArea = card.querySelector(".paste-area");
-        const isOpen = pasteArea.classList.toggle("show");
-        e.target.textContent = isOpen ? "📋 收起粘贴" : "📋 粘贴";
-      },
-    });
-
     const toggleBtn = E("button", {
       type: "button", className: "toggle-btn", textContent: "收起",
       onClick: () => {
@@ -1216,9 +541,8 @@ function buildCards() {
         toggleBtn.textContent = hidden ? "收起" : "展开";
       },
     });
-    header.append(nameInput, pasteToggle, toggleBtn);
+    header.append(nameInput, toggleBtn);
 
-    // Form body
     const body = E("div", { className: "person-body" });
     for (const f of PERSON_FIELDS) {
       const label = E("label", f.span ? { className: "full-span" } : {});
@@ -1232,61 +556,24 @@ function buildCards() {
       personData[i][f.id] = "";
       input.addEventListener("input", (e) => {
         personData[i][f.id] = e.target.value;
-        autoSave();
+        saveToStorage();
       });
       label.append(f.label, input);
       body.append(label);
     }
 
-    // Paste area
-    const pasteArea = E("div", { className: "paste-area" });
-    const pasteHint = E("div", {
-      className: "paste-hint",
-    });
-    pasteHint.innerHTML = '💡 <b>快捷粘贴</b>：把伙伴发来的汇报文字粘贴到下面，点「解析填充」自动填入上方字段。<br>支持格式：<code>渠道经营：明亚、保通</code> / <code>有效面谈人数：12</code> / 自由文本（自动识别数字）';
-    const pasteTextarea = E("textarea", {
-      placeholder: "在此粘贴伙伴发来的汇报内容...\n\n例如：\n渠道经营：明亚、保通驻点\n今日工作：明亚驻点沟通，泰有鑫意一对一宣导\n有效面谈人数：12\n计划书递送份数：2\n新增粉丝人数：3\n表现亮点：泰有鑫意有线索\n明日工作计划：明亚驻点，线索落地追踪\n明日保费预估：明亚泰给利5万趸",
-      onInput: (e) => {
-        // Auto-parse on input (debounced)
-        clearTimeout(pasteTextarea._parseTimer);
-      },
-    });
-    const pasteMsg = E("span", { className: "paste-msg" });
-    const parseBtn = E("button", {
-      textContent: "🔍 解析填充",
-      onClick: () => {
-        const raw = pasteTextarea.value.trim();
-        if (!raw) { showToast('请先粘贴内容', 'error'); return; }
-        const data = parsePasteText(raw, i);
-        const filled = Object.keys(data).filter(k => data[k] !== undefined && data[k] !== '');
-        fillPersonFromData(i, data);
-        pasteMsg.style.display = 'inline';
-        pasteMsg.textContent = '✓ 已解析填充 ' + filled.length + ' 个字段';
-        setTimeout(() => { pasteMsg.style.display = 'none'; }, 2000);
-      },
-    });
-    const clearPasteBtn = E("button", {
-      className: "secondary", textContent: "清空粘贴区",
-      onClick: () => { pasteTextarea.value = ''; },
-    });
-    const pasteActions = E("div", { className: "paste-actions" });
-    pasteActions.append(parseBtn, clearPasteBtn, pasteMsg);
-    pasteArea.append(pasteHint, pasteTextarea, pasteActions);
-
-    card.append(header, body, pasteArea);
+    card.append(header, body);
     grid.append(card);
   }
 }
 
-// ── attach summary + result auto-save ───────────────────
+// ── attach auto-save to summary fields ─────────────────
 function attachSummaryAutoSave() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'].concat(['todayActiveFans','todayHighPFans']);
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('input', autoSave);
+    if (el) el.addEventListener('input', saveToStorage);
   });
-  // Result textarea manual edit
-  $('#result').addEventListener('input', autoSave);
 }
 
 // ── collect data ────────────────────────────────────────
@@ -1314,8 +601,6 @@ function getSummary() {
     offlineActivityMonth: n($("#offlineActivityMonth").value),
     monthActiveFans: n($("#monthActiveFans").value),
     monthHighPFans: n($("#monthHighPFans").value),
-    todayActiveFans: n($("#todayActiveFans").value),
-    todayHighPFans: n($("#todayHighPFans").value),
   };
 }
 
@@ -1329,7 +614,8 @@ function getPeople() {
     fansInterview: n(p.fansInterview),
     fansPlan: n(p.fansPlan),
     fansNew: n(p.fansNew),
-
+    fansActive: n(p.fansActive),
+    fansHighP: n(p.fansHighP),
     specialOnline: n(p.specialOnline),
     specialTrain: n(p.specialTrain),
     specialAct: n(p.specialAct),
@@ -1350,18 +636,28 @@ function merge(people) {
     channelWork: [], activity: [], training: [],
   };
   for (const p of people) {
+    // work/plan/premium: no names in output
     for (const item of p.work) m.work.push(item);
     for (const item of p.plan) m.plan.push(item);
     for (const item of p.premium) m.premium.push(item);
+
+    // excellent/improve: keep names for 点评 section
     if (p.excellent) m.excellent.push({ name: p.name, text: p.excellent });
     if (p.improve) m.improve.push({ name: p.name, text: p.improve });
+
+    // fan numbers
     m.fans.interview += p.fansInterview;
     m.fans.plan += p.fansPlan;
     m.fans.newFans += p.fansNew;
+    m.fans.activeFans += p.fansActive;
+    m.fans.highP += p.fansHighP;
 
+    // special numbers
     m.special.onlineToday += p.specialOnline;
     m.special.trainToday += p.specialTrain;
     m.special.actToday += p.specialAct;
+
+    // channel/activity/training: no names
     if (p.channelWork) m.channelWork.push(p.channelWork);
     if (p.activity) m.activity.push(p.activity);
     if (p.training) m.training.push(p.training);
@@ -1380,6 +676,7 @@ function render(s, people, m) {
   const planItems = unique(m.plan);
   const premiumItems = unique(m.premium);
 
+  // excellent: format as "名字；亮点内容"
   const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("、");
   const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("；");
   const excellent = m.excellent.length
@@ -1398,17 +695,29 @@ function render(s, people, m) {
   const premiumContent = premiumItems.length ? premiumItems : ["暂无"];
 
   return [
-    "一、", "",
-    `【${dateCode}多元汇报】`, "",
+    "一、",
+    "",
+    `【${dateCode}多元汇报】`,
+    "",
     "一、目标进度",
     `今日预收${fmt(s.todayPresale)}万p，今日承保${fmt(s.todayUnderwrite)}万p；${ml}累计预收${fmt(s.monthPresale)}万p，承保${fmt(s.monthUnderwrite)}万p；`,
     `${ml}活动人力目标${fmt(s.activityTarget)}人，达成${fmt(s.activityDone)}人；有效渠道目标${fmt(s.channelTarget)}个，达成${fmt(s.channelDone)}个。`,
     `${ml}目标${fmt(s.monthTarget)}万，任务达成${completion}`,
-    "", "二、今日工作总结：", ...workContent,
-    "", "三、明日工作计划：", ...planContent,
-    "", "三、明日保费预估：", ...premiumContent,
-    "", "", "二、", "",
-    `四川分多元日报${dateCode}`, "",
+    "",
+    "二、今日工作总结：",
+    ...workContent,
+    "",
+    "三、明日工作计划：",
+    ...planContent,
+    "",
+    "三、明日保费预估：",
+    ...premiumContent,
+    "",
+    "",
+    "二、",
+    "",
+    `四川分多元日报${dateCode}`,
+    "",
     "一、【泰有鑫意品宣推动及业绩情况】",
     "（一）品宣",
     "1.泰有鑫意今日品宣：",
@@ -1422,19 +731,25 @@ function render(s, people, m) {
     `2.泰有鑫意今日受理业绩P：${fmt(s.specialToday)}`,
     `3.泰有鑫意当月累计业绩P：${fmt(s.specialMonth)}`,
     `4.距离目标差额：${fmt(specialGap)}`,
-    "", "二、【今日主要工作汇报】",
+    "",
+    "二、【今日主要工作汇报】",
     `1.渠道经营：${channel}`,
     `2.活动赋能：${activity}`,
     `3.培训辅导：${training}`,
-    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、今日新增活粉人数${fmt(s.todayActiveFans)}人（本月累计${fmt(s.monthActiveFans)}人）、今日新增高P粉人数${fmt(s.todayHighPFans)}人（本月累计${fmt(s.monthHighPFans)}人）。`,
-    "", "三、【部总每日对下属点评】",
+    `4.粉丝经营：今日完成有效面谈人数${fmt(m.fans.interview)}人、计划书递送份数${fmt(m.fans.plan)}人、新增粉丝人数${fmt(m.fans.newFans)}人、新增活粉人数${fmt(m.fans.activeFans)}人（累计${fmt(s.monthActiveFans)}人）、新增高P粉人数${fmt(m.fans.highP)}人（累计${fmt(s.monthHighPFans)}人）。`,
+    "",
+    "三、【部总每日对下属点评】",
     `1. 今日表现优秀人员及亮点：${excellent}`,
     `2. 需改进人员及建议措施：${improve}`,
-    "", "四、【明日工作规划】",
-    `1.明日重点工作：${filterTomorrowPlan(planItems)}`,
+    "",
+    "四、【明日工作规划】",
+    `1.明日重点工作：${planItems.join("、")}`,
     `2.培训：${makeItem(planItems, ["培训","宣导"])}`,
     `3.活动：${makeItem(planItems, ["活动","沙龙"])}`,
-    "", "", "三、", "",
+    "",
+    "",
+    "三、",
+    "",
     `【${s.date}日多元汇报】今日预收${fmt(s.todayPresale)}万P，本月累计预收${fmt(s.monthPresale)}万P，累计承保${fmt(s.monthUnderwrite)}万P；明日预估${fmt(s.tomorrowEstimate)}万P`,
   ].join("\n");
 }
@@ -1445,19 +760,17 @@ function generate() {
   const people = getPeople().filter(p => p.work.length || p.plan.length || p.premium.length || p.excellent || p.improve);
   const m = merge(people);
   $("#result").value = render(s, people, m);
-  autoSave();
 }
 
 // ── copy / download ─────────────────────────────────────
 async function copyResult() {
   const text = $("#result").value;
   if (!text.trim()) return;
-  try {
-    await navigator.clipboard.writeText(text);
-    const b = $("#copyBtn"), prev = b.textContent;
-    b.textContent = "✓ 已复制";
-    setTimeout(() => b.textContent = prev, 1200);
-  } catch (e) { showToast('复制失败，请手动选择复制', 'error'); }
+  await navigator.clipboard.writeText(text);
+  const b = $("#copyBtn");
+  const prev = b.textContent;
+  b.textContent = "✓ 已复制";
+  setTimeout(() => b.textContent = prev, 1200);
 }
 
 function downloadResult() {
@@ -1466,57 +779,23 @@ function downloadResult() {
   const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = E("a", { href: url, download: `每日汇报_${new Date().toISOString().slice(0,10)}.txt` });
-  a.click(); a.remove();
+  a.click();
+  a.remove();
   URL.revokeObjectURL(url);
-}
-
-// ── export / import JSON ────────────────────────────────
-function exportJSON() {
-  const data = collectAllData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = E("a", {
-    href: url,
-    download: `daily-report-backup-${$('#reportDate').value || new Date().toISOString().slice(0,10)}.json`
-  });
-  a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  showToast('✓ 备份文件已下载', 'success');
-}
-
-function importJSON() {
-  $('#importFile').value = '';
-  $('#importFile').click();
-}
-
-async function handleImportFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const data = JSON.parse(text);
-    applyDataToForm(data);
-    syncToDOM();
-    saveToLocalStorage();
-    if (fileHandle) await writeToFileNow(fileHandle);
-    showToast('✓ 数据已恢复', 'success');
-  } catch (err) {
-    showToast('导入失败，请检查文件格式', 'error');
-  }
 }
 
 // ── samples ─────────────────────────────────────────────
 const SAMPLES = [
   { name:"李红霞", work:["明亚渠道驻点沟通","泰有鑫意一对一宣导，跟进高P线索2个"], channelWork:"明亚、保通驻点", fansInterview:12, fansPlan:2, fansNew:3, excellent:"泰有鑫意有线索", plan:["明亚驻点","线索落地追踪"], premium:["明亚:泰给利5万趸"] },
-  { name:"钟华", work:["大童绩优沟通交流","大童高端渠道经营"], channelWork:"大童、年丰", fansInterview:10, fansPlan:2, fansNew:2, excellent:"绩优粉丝与内勤深度沟通", plan:["大童驻点","绩优伙伴产品沟通"], premium:["大童:泰赢家20万3年"] },
-  { name:"刘杰", work:["保通泰有鑫意自媒体培训及推动","泰有鑫意线上品宣0篇，线下培训0场"], training:"保通自媒体培训", fansInterview:25, fansPlan:3, fansNew:3, improve:"泰有鑫意一对一推动须加快", plan:["保通泰有鑫意客户沙龙","泰给利客户沙龙"], premium:["京东:泰给利10万趸"] },
-  { name:"朱中国", work:["年丰、泛华驻点","客户沙龙邀约"], channelWork:"年丰、泛华", fansInterview:25, fansPlan:3, fansNew:3, improve:"泰有鑫意推动节奏需加快", plan:["恒邦630冲刺培训","宝瑞泰有鑫意线上培训","年丰吴婷瑶团队产品培训"] },
+  { name:"钟华", work:["大童绩优沟通交流","大童高端渠道经营"], channelWork:"大童、年丰", fansInterview:10, fansPlan:2, fansNew:2, fansActive:1, excellent:"绩优粉丝与内勤深度沟通", plan:["大童驻点","绩优伙伴产品沟通"], premium:["大童:泰赢家20万3年"] },
+  { name:"刘杰", work:["保通泰有鑫意自媒体培训及推动","泰有鑫意线上品宣0篇，线下培训0场"], training:"保通自媒体培训", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意一对一推动须加快", plan:["保通泰有鑫意客户沙龙","泰给利客户沙龙"], premium:["京东:泰给利10万趸"] },
+  { name:"朱中国", work:["年丰、泛华驻点","客户沙龙邀约"], channelWork:"年丰、泛华", fansInterview:25, fansPlan:3, fansNew:3, fansActive:1, improve:"泰有鑫意推动节奏需加快", plan:["恒邦630冲刺培训","宝瑞泰有鑫意线上培训","年丰吴婷瑶团队产品培训"] },
 ];
 
 function fillSample() {
   for (let i = 0; i < 4; i++) {
     const s = SAMPLES[i];
-    const card = $$(".person-card")[i];
+    const card = document.querySelectorAll(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = s.name;
     personData[i].name = s.name;
@@ -1532,7 +811,7 @@ function fillSample() {
       else if (f.id === "training") val = s.training || "";
       else if (f.id === "excellent") val = s.excellent || "";
       else if (f.id === "improve") val = s.improve || "";
-      else if (["fansInterview","fansPlan","fansNew","specialOnline","specialTrain","specialAct"].includes(f.id)) val = s[f.id] || 0;
+      else if (["fansInterview","fansPlan","fansNew","fansActive","fansHighP","specialOnline","specialTrain","specialAct"].includes(f.id)) val = s[f.id] || 0;
       el.value = val;
       personData[i][f.id] = typeof val === "string" ? val : String(val);
     }
@@ -1544,42 +823,50 @@ function fillSample() {
 
 // ── clear ───────────────────────────────────────────────
 function clearAll() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','todayActiveFans','todayHighPFans','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
-  summaryIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  // Clear localStorage
+  clearStorage();
+  // Clear summary fields
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','monthActiveFans','monthHighPFans'];
+  summaryIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  // Clear person cards
   for (let i = 0; i < 4; i++) {
-    const card = $$(".person-card")[i];
+    const card = document.querySelectorAll(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = DEFAULT_NAMES[i];
     personData[i].name = DEFAULT_NAMES[i];
     for (const f of PERSON_FIELDS) {
       const el = card.querySelector(`#p${i}_${f.id}`);
-      if (el) { el.value = ""; personData[i][f.id] = ""; }
+      if (!el) continue;
+      el.value = "";
+      personData[i][f.id] = "";
     }
   }
   $("#result").value = "";
-  localStorage.removeItem(STORAGE_KEY);
-  if (fileHandle) writeToFileNow(fileHandle);
-  showToast('已清空所有数据', 'success');
+  // Save cleared state
+  saveToStorage();
 }
 
 // ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
-const TOMORROW_KEYWORDS = ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"];
 function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
 function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
-function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
-function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"]; }
-function makeItem(items, keywords) { const matched = items.filter(it => keywords.some(k => it.includes(k))); return matched.length ? matched.join("、") : "无"; }
-function unique(items) { return [...new Set(items.map(it => it.trim()).filter(Boolean))]; }
-// 明日重点工作：仅保留渠道名称 + 驻点/培训/活动
-
-
-// 过滤明日重点工作：仅保留渠道名/驻点/培训/活动 // v6.26 fix: removed 启动推动追踪复盘
-function filterTomorrowPlan(items) {
-  const keywords = ["驻点","培训","宣导","活动","沙龙"];
-  const filtered = items.filter(it => keywords.some(k => it.includes(k)));
-  return filtered.length ? filtered.join("、") : "待定";
+function splitPair(v) {
+  const nums = String(v).match(/\d+(?:\.\d+)?/g) || [];
+  return [n(nums[0]), n(nums[1])];
+}
+function numberLines(items) {
+  return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"];
+}
+function makeItem(items, keywords) {
+  const matched = items.filter(it => keywords.some(k => it.includes(k)));
+  return matched.length ? matched.join("、") : "无";
+}
+function unique(items) {
+  return [...new Set(items.map(it => it.trim()).filter(Boolean))];
 }
 
 // ── collapse all ────────────────────────────────────────
@@ -1587,518 +874,31 @@ function collapseAll() {
   $$(".person-card").forEach(card => {
     const body = card.querySelector(".person-body");
     const btn = card.querySelector(".toggle-btn");
-    if (body.style.display !== "none") { body.style.display = "none"; btn.textContent = "展开"; }
-  });
-}
-
-// ── Cloud Sync (GitHub-based) ────────────────────────────
-const CLOUD_FILE = 'daily-report-shared.json';
-const CLOUD_TOKEN_KEY = 'cloudSyncToken_v3';
-const CLOUD_POLL_MS = 5000; // poll every 5s
-
-// ─────────────────────────────────────────────────────
-//  Cloud vars
-// ─────────────────────────────────────────────────────
-let cloudToken = null;
-let cloudFileSHA = null;
-let cloudLastSyncTime = null;
-let cloudPollingTimer = null;
-let cloudSaving = false;
-let cloudPendingSave = false;
-let cloudLastKnownSHA = null;
-let cloudSaveTimer = null;
-let cloudPollOk = 0, cloudPollFail = 0;
-
-// ─────────────────────────────────────────────────────
-//  Token helpers
-// ─────────────────────────────────────────────────────
-function getCloudToken() {
-  if (!cloudToken) cloudToken = localStorage.getItem(CLOUD_TOKEN_KEY);
-  return cloudToken;
-}
-function setCloudToken(t) { cloudToken = t; localStorage.setItem(CLOUD_TOKEN_KEY, t); }
-function clearCloudToken() {
-  cloudToken = null;
-  localStorage.removeItem(CLOUD_TOKEN_KEY);
-  cloudFileSHA = null; cloudLastKnownSHA = null; cloudLastSyncTime = null;
-  clearInterval(cloudPollingTimer); cloudPollingTimer = null;
-}
-
-// ─────────────────────────────────────────────────────
-//  Low-level GitHub API call
-// ─────────────────────────────────────────────────────
-async function cloudAPI(method, path, body) {
-  var token = getCloudToken();
-  if (!token) return null;
-  var url = 'https://api.github.com' + path;
-  var opts = {
-    method: method,
-    headers: { Authorization: 'Bearer ' + token, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json', 'User-Agent': 'dr-app' },
-    signal: AbortSignal.timeout(10000)
-  };
-  if (body) opts.body = JSON.stringify(body);
-  var res = await fetch(url, opts);
-  if (res.status === 401) throw new Error('TOKEN_INVALID');
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    var errText = res.status + '';
-    try { var ej = await res.json(); errText += ' ' + (ej.message || ''); } catch(e) {}
-    throw new Error(errText);
-  }
-  return res.json();
-}
-
-// ─────────────────────────────────────────────────────
-//  Load cloud data (raw JSON object)
-// ─────────────────────────────────────────────────────
-async function loadFromCloud() {
-  var token = getCloudToken();
-  if (!token) return null;
-  try {
-    var data = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
-    if (!data) return null;
-    cloudFileSHA = data.sha;
-    if (cloudLastKnownSHA === null) cloudLastKnownSHA = data.sha;
-    var bytes = atob(data.content);
-    return JSON.parse(decodeURIComponent(escape(bytes)));
-  } catch (e) {
-    if (e.message === 'TOKEN_INVALID') { showToast('🔑 Token 已过期'); return { error: 'TOKEN_INVALID' }; }
-    return { error: 'NETWORK' };
-  }
-}
-
-// ─────────────────────────────────────────────────────
-//  Merge: always accept cloud data for fresh devices
-// ─────────────────────────────────────────────────────
-function mergeCloudData(cloudData) {
-  var changed = false;
-
-  // Detect fresh device: ALL local names are defaults ("伙伴1-4")
-  var fresh = true;
-  var defs = {}; DEFAULT_NAMES.forEach(function(n) { defs[n] = true; });
-  for (var i = 0; i < 4; i++) { if (!defs[personData[i].name]) { fresh = false; break; } }
-
-  // Summary
-  if (cloudData.summary) {
-    var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
-    summaryIds.forEach(function(k) {
-      var v = cloudData.summary[k];
-      if (v === undefined || v === null) return;
-      var el = document.getElementById(k);
-      if (!el) return;
-      if (fresh || !el.value) { el.value = v; changed = true; }
-    });
-  }
-
-  // People
-  if (cloudData.people && Array.isArray(cloudData.people)) {
-    for (var ci = 0; ci < cloudData.people.length; ci++) {
-      var cp = cloudData.people[ci];
-      if (!cp.name) continue;
-      // Match by name or by slot
-      var mi = -1;
-      for (var li = 0; li < 4; li++) {
-        if (personData[li].name === cp.name) { mi = li; break; }
-        if (!personData[li].name || defs[personData[li].name]) { if (mi < 0) mi = li; }
-      }
-      if (mi < 0 && fresh && ci < 4) mi = ci;
-      if (mi < 0) continue;
-
-      personData[mi].name = cp.name;
-      for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
-        var f = PERSON_FIELDS[fi];
-        var v = cp[f.id];
-        if (v === undefined || v === null || v === '') continue;
-        if (fresh || !personData[mi][f.id] || personData[mi][f.id] === '') {
-          personData[mi][f.id] = v; changed = true;
-        }
-      }
-    }
-  }
-  return changed;
-}
-
-// ─────────────────────────────────────────────────────
-//  Build payload from DOM (always fresh read)
-// ─────────────────────────────────────────────────────
-function buildCloudPayload() {
-  for (var i = 0; i < 4; i++) {
-    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
-      var f = PERSON_FIELDS[fi];
-      var el = document.getElementById('p' + i + '_' + f.id);
-      if (el) personData[i][f.id] = el.value;
-    }
-  }
-  var summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
-  var sum = {};
-  summaryIds.forEach(function(k) { var el = document.getElementById(k); sum[k] = el ? el.value : ''; });
-  var people = [];
-  for (var i2 = 0; i2 < 4; i2++) {
-    var obj = { name: personData[i2].name || DEFAULT_NAMES[i2] };
-    for (var fi2 = 0; fi2 < PERSON_FIELDS.length; fi2++) {
-      var f2 = PERSON_FIELDS[fi2]; obj[f2.id] = personData[i2][f2.id] || '';
-    }
-    people.push(obj);
-  }
-  return { version: 3, savedAt: new Date().toISOString(), savedBy: personData[0].name || DEFAULT_NAMES[0], summary: sum, people: people };
-}
-
-// ─────────────────────────────────────────────────────
-//  Save to cloud — with 409 conflict handling
-// ─────────────────────────────────────────────────────
-async function saveToCloud(data, attempt) {
-  var token = getCloudToken();
-  if (!token) return false;
-  if (!attempt && cloudSaving) { cloudPendingSave = true; return false; }
-  cloudSaving = true;
-  if (!attempt) attempt = 0;
-  if (!data) data = buildCloudPayload();
-
-  try {
-    var body = { message: 'auto-sync', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
-    if (cloudFileSHA) body.sha = cloudFileSHA;
-    var result = await cloudAPI('PUT', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE, body);
-    if (!result) { cloudSaving = false; return false; }
-    cloudFileSHA = result.content.sha;
-    cloudLastKnownSHA = result.content.sha;
-    cloudLastSyncTime = new Date();
-    cloudSaving = false;
-    if (cloudPendingSave) { cloudPendingSave = false; flushCloud(); }
-    updateStatusBar();
-    return true;
-  } catch (e) {
-    // 409 Conflict: re-fetch SHA + merge + retry
-    if (e.message.indexOf('409') >= 0 && attempt < 5) {
-      try {
-        var fetchResult = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
-        if (fetchResult) {
-          cloudFileSHA = fetchResult.sha; cloudLastKnownSHA = fetchResult.sha;
-          var fb = atob(fetchResult.content);
-          var fd = JSON.parse(decodeURIComponent(escape(fb)));
-          mergeCloudData(fd); syncToDOM(); saveToLocalStorage();
-        }
-        cloudSaving = false;
-        await new Promise(function(r) { setTimeout(r, 200 + Math.random() * 800); });
-        return await saveToCloud(buildCloudPayload(), attempt + 1);
-      } catch(e2) { cloudSaving = false; }
-    }
-    // Retry once on network error
-    cloudSaving = false;
-    if (attempt < 1) {
-      cloudFileSHA = null;
-      await new Promise(function(r) { setTimeout(r, 1000); });
-      return await saveToCloud(buildCloudPayload(), attempt + 1);
-    }
-    console.warn('Cloud save failed: ' + e.message);
-    return false;
-  }
-}
-
-// ─────────────────────────────────────────────────────
-//  Debounced cloud push (called by autoSave)
-// ─────────────────────────────────────────────────────
-function flushCloud() {
-  clearTimeout(cloudSaveTimer);
-  if (!getCloudToken()) return;
-  cloudSaveTimer = setTimeout(function() { saveToCloud(null, 0); }, 80);
-}
-
-// ─────────────────────────────────────────────────────
-//  Manual cloud refresh (user clicks a button)
-// ─────────────────────────────────────────────────────
-async function refreshCloud() {
-  if (cloudSaving) { showToast('⏳ 同步中…', 'warn'); return; }
-  showToast('🔄 拉取云端…', 'info');
-  try {
-    var data = await loadFromCloud();
-    if (!data || data.error) { showToast(data && data.error === 'TOKEN_INVALID' ? '🔑 Token 已过期' : '⚠️ 网络异常', 'error'); return; }
-    if (mergeCloudData(data)) { syncToDOM(); saveToLocalStorage(); showToast('✅ 已同步云端最新', 'success'); }
-    else { showToast('✓ 本地已最新', 'info'); }
-    updateStatusBar();
-  } catch(e) { showToast('❌ 同步失败', 'error'); }
-}
-
-// ─────────────────────────────────────────────────────
-//  Polling loop
-// ─────────────────────────────────────────────────────
-async function startCloudPolling() {
-  if (cloudPollingTimer) clearInterval(cloudPollingTimer);
-  if (!getCloudToken()) return;
-
-  // Phase A: immediate first pull
-  try {
-    var first = await loadFromCloud();
-    if (first && !first.error) {
-      if (mergeCloudData(first)) { syncToDOM(); saveToLocalStorage(); showToast('📥 已加载云端数据', 'success'); }
-      cloudLastSyncTime = new Date();
-    }
-  } catch(e) {}
-
-  // Phase B: poll loop
-  cloudPollingTimer = setInterval(async function() {
-    if (!getCloudToken()) { clearInterval(cloudPollingTimer); return; }
-    try {
-      var meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
-      if (!meta) return;
-      cloudPollOk++; cloudPollFail = 0;
-      if (meta.sha !== cloudLastKnownSHA && !cloudSaving) {
-        var fresh = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
-        if (fresh) {
-          var bytes = atob(fresh.content);
-          var data = JSON.parse(decodeURIComponent(escape(bytes)));
-          if (mergeCloudData(data)) { syncToDOM(); saveToLocalStorage(); showToast('📥 收到队友更新', 'success'); }
-          cloudFileSHA = fresh.sha; cloudLastKnownSHA = fresh.sha; cloudLastSyncTime = new Date();
-          updateStatusBar();
-        }
-      }
-    } catch(e) { cloudPollFail++; }
-  }, CLOUD_POLL_MS);
-}
-
-
-
-
-var _pollFailures = 0, _pollLastAttempt = 0;
-
-function updateStatusBar() {
-  var dot = $('#statusDot'), text = $('#statusText'), time = $('#saveTime'), cloudStatus = $('#cloudStatus');
-  var token = getCloudToken();
-  var lastSyncHtml = '';
-
-  if (cloudPollFail > 2) {
-    // Poll failing — show warning
-    lastSyncHtml = ' <span style="color:#e74c3c">⚠️ 轮询异常</span>';
-  } else if (cloudLastSyncTime) {
-    var ago = Math.round((Date.now() - cloudLastSyncTime.getTime()) / 1000);
-    var agoStr = ago < 60 ? ago + '秒前' : ago < 3600 ? Math.round(ago/60) + '分钟前' : Math.round(ago/3600) + '小时前';
-    lastSyncHtml = ' <span style="color:' + (ago < 30 ? 'var(--success)' : ago < 300 ? 'var(--warn)' : '#e74c3c') + '">' + agoStr + '同步</span>';
-  }
-
-  if (token) {
-    dot.className = 'dot green pulse';
-    text.innerHTML = '☁️ 团队同步已开启 · 每 5s 自动拉取' + lastSyncHtml + ' <button onclick="refreshCloud()" style="margin-left:6px;padding:2px 10px;font-size:12px;cursor:pointer;border:1px solid var(--primary);border-radius:4px;background:transparent;color:var(--primary)">🔄 刷新</button>';
-    if (cloudSaving) { cloudStatus.style.display = 'inline'; cloudStatus.textContent = '☁️ 推送中…'; cloudStatus.style.color = 'var(--warn)'; }
-    else if (cloudLastSyncTime) { cloudStatus.style.display = 'inline'; cloudStatus.textContent = ''; }
-  } else {
-    dot.className = 'dot yellow';
-    text.innerHTML = '⚠️ 未设置团队同步 Token <button onclick="showSyncDialog()" style="margin-left:6px;padding:2px 10px;font-size:12px;cursor:pointer;border:1px solid var(--primary);border-radius:4px;background:var(--primary);color:#fff">设置</button>';
-  }
-
-  if (lastSaveTime) { time.style.display = 'inline'; time.textContent = '💾 ' + lastSaveTime.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}); }
-}
-
-function setupSyncDialog() {
-  const overlay = $('#syncOverlay');
-  const form = $('#syncTokenForm');
-  const info = $('#syncTokenInfo');
-  const btn = $('#cloudSyncBtn');
-  const closeBtn = $('#syncCloseBtn');
-  const closeBtn2 = $('#syncCloseBtn2');
-  const connectBtn = $('#syncConnectBtn');
-  const disconnectBtn = $('#syncDisconnectBtn');
-  const tokenInput = $('#syncTokenInput');
-
-  const tokenStatus = $('#syncTokenStatus');
-
-
-  function openDialog() {
-    const token = getCloudToken();
-    if (token) {
-      form.style.display = 'none';
-      info.style.display = 'block';
-      tokenStatus.innerHTML = '<span class="dot-sync green"></span>已连接团队同步（每次保存自动云同步）';
-    } else {
-      form.style.display = 'block';
-      info.style.display = 'none';
-      tokenInput.value = '';
-    }
-    overlay.classList.add('show');
-    btn.classList.add('active');
-  }
-
-  function closeDialog() {
-    overlay.classList.remove('show');
-    const token = getCloudToken();
-    if (token) btn.classList.add('active');
-    else btn.classList.remove('active');
-  }
-
-  btn.addEventListener('click', openDialog);
-  closeBtn.addEventListener('click', closeDialog);
-  closeBtn2.addEventListener('click', closeDialog);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDialog(); });
-
-
-  connectBtn.addEventListener('click', async () => {
-    const token = tokenInput.value.trim();
-    if (!token) { showToast('请输入 Token', 'error'); return; }
-    if (!token.startsWith('github_pat_') && !token.startsWith('ghp_') && !token.startsWith('ghs_') && !token.startsWith('gho_')) {
-      showToast('Token 格式不正确，应以 ghp_ / github_pat_ 开头', 'error'); return;
-    }
-    // Test token by fetching file list
-    setCloudToken(token);
-    connectBtn.textContent = '验证中…';
-    connectBtn.disabled = true;
-    try {
-      const test = await loadFromCloud();
-      connectBtn.textContent = '连接同步';
-      connectBtn.disabled = false;
-      if (test === undefined) {
-        // File doesn't exist yet — this is fine, first save will create it
-        cloudFileSHA = null;
-      }
-      showToast('☁️ 团队同步已连接！', 'success');
-      closeDialog();
-      startCloudPolling();
-      updateStatusBar();
-    } catch (e) {
-      connectBtn.textContent = '连接同步';
-      connectBtn.disabled = false;
-      clearCloudToken();
-      showToast('Token 验证失败：' + (e.message === 'TOKEN_INVALID' ? 'Token 无效，请检查权限' : '网络错误'), 'error');
+    if (body.style.display !== "none") {
+      body.style.display = "none";
+      btn.textContent = "展开";
     }
   });
-
-  disconnectBtn.addEventListener('click', () => {
-    clearCloudToken();
-    showToast('已断开团队同步', 'error');
-    updateStatusBar();
-    closeDialog();
-  });
 }
-
-
-
-// Override autoSave to include cloud
-const _origAutoSave = autoSave;
-autoSave = function() {
-  _origAutoSave();
-  if (getCloudToken()) flushCloud();
-};
-
-// ── manual save ──────────────────────────────────────
-async function manualSave() {
-  var btn = $('#manualSaveBtn');
-  btn.textContent = '⏳ 保存中…'; btn.disabled = true;
-  try {
-    saveToLocalStorage();
-    if (fileHandle) { await writeToFileNow(fileHandle); }
-    if (getCloudToken()) { await saveToCloud(buildCloudPayload(), 0); }
-    btn.textContent = '✅ 已保存';
-    setTimeout(function() { btn.textContent = '💾 保存'; btn.disabled = false; }, 1500);
-    updateStatusBar();
-  } catch(e) { btn.textContent = '❌ 失败'; setTimeout(function(){ btn.textContent='💾 保存'; btn.disabled=false; }, 2000); }
 
 // ── init ────────────────────────────────────────────────
-async function init() {
-  let _initError = false;
-  
-  // Phase 0: Bind critical UI immediately (before async ops that may throw)
+function init() {
   buildCards();
-  checkFileAPI();
-  $("#manualSaveBtn").addEventListener("click", manualSave);
-  window.addEventListener('beforeunload', function() { 
-    try { saveToLocalStorage(); } catch(e) {} 
-    var token = getCloudToken();
-    if (token && cloudFileSHA) {
-      try {
-        var payload = buildCloudPayload();
-        var encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
-        var xhr = new XMLHttpRequest();
-        xhr.open('PUT', 'https://api.github.com/repos/maxiao871/daily-report/contents/daily-report-shared.json', false);
-        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify({message:'close-save',content:encoded,sha:cloudFileSHA}));
-      } catch(e) {}
-    }
+  // 优先从云端加载（多人同步），失败则用本地
+  loadFromCloud().catch(() => {}).then(ok => {
+    if (!ok) loadFromStorage();
+    applyCardValues();
+    attachSummaryAutoSave();
   });
-  document.addEventListener('visibilitychange', () => { 
-    if (document.hidden) { 
-      try { saveToLocalStorage(); } catch(e) {} 
-      if (getCloudToken() && !cloudSaving) { 
-        unlessSavingCloud(buildCloudPayload()); 
-      } 
-    } 
-  });
-  document.addEventListener("keydown", (e) => { if ((e.ctrlKey||e.metaKey)&&e.key==="s") { e.preventDefault(); manualSave(); } });
-
-  // Phase 1: File System API (best-effort, ignore errors)
-  try {
-    if (hasFileAPI) {
-      const handle = await recallFileHandle();
-      if (handle) {
-        const permOk = await verifyHandlePermission(handle);
-        if (permOk) {
-          const fileData = await readFromFile(handle);
-          if (fileData) {
-            fileHandle = handle;
-            applyDataToForm(fileData);
-            const localRaw = localStorage.getItem(STORAGE_KEY);
-            if (!localRaw) { saveToLocalStorage(); }
-            else { try {
-              const localData = JSON.parse(localRaw);
-              const fileTime = fileData.savedAt || '1970';
-              const localTime = localData.savedAt || '1970';
-              if (fileTime > localTime) { saveToLocalStorage(); }
-              else { applyDataToForm(localData); }
-            } catch(e) { saveToLocalStorage(); } }
-          }
-        }
-      }
-    }
-  } catch(e) { console.warn('init: File API init failed', e); }
-
-  // Phase 2: localStorage or first-visit defaults
-  if (!fileHandle) { loadFromLocalStorage(); syncToDOM(); }
-  if (!fileHandle && !localStorage.getItem(STORAGE_KEY)) {
-    $('#reportDate').value = '7.7';
-    $('#monthLabel').value = '7月';
-    for (let i = 0; i < DEFAULT_NAMES.length; i++) {
-      if (!personData[i] || !personData[i].name) personData[i] = { name: DEFAULT_NAMES[i] };
-    }
-    saveToLocalStorage();
-    syncToDOM();
-  }
-  syncToDOM();
-  updateStatusBar();
-  
-  // Warn if cloud sync is not set up
-  if (!getCloudToken() && !localStorage.getItem('cloudSetupDismissed')) {
-    setTimeout(() => {
-      showToast('🔔 请点击「团队同步」设置 Token 以启用多设备数据同步', 'info', 12000);
-    }, 2000);
-  }
- 
-  // Phase 3: remaining setup (all wrapped in try)
-  try { attachSummaryAutoSave(); } catch(e) { console.warn('attachSummaryAutoSave:', e); }
-  try { startFlashInterval(); } catch(e) { console.warn('startFlashInterval:', e); }
-  
-  try {
-    $("#generateBtn").addEventListener("click", generate);
-    $("#copyBtn").addEventListener("click", copyResult);
-    $("#downloadBtn").addEventListener("click", downloadResult);
-    $("#sampleBtn").addEventListener("click", fillSample);
-    $("#clearBtn").addEventListener("click", clearAll);
-    $("#collapseAll").addEventListener("click", collapseAll);
-    $("#pickFileBtn").addEventListener("click", pickSaveFile);
-    $("#exportBtn").addEventListener("click", exportJSON);
-    $("#importBtn").addEventListener("click", importJSON);
-    $("#importFile").addEventListener("change", handleImportFile);
-  } catch(e) { console.warn('init: button binding failed', e); }
-
-  try { initGlobalPaste(); } catch(e) { console.warn('initGlobalPaste:', e); }
-  try { setupSyncDialog(); } catch(e) { console.warn('setupSyncDialog:', e); }
-
-  // Phase 4: Cloud (best-effort)
-  try { if (getCloudToken()) startCloudPolling(); } catch(e) { console.warn('startCloudPolling:', e); }
-
-  // Periodic safety save
-  setInterval(() => { try { if (localStorage.getItem(STORAGE_KEY)) saveToLocalStorage(); } catch(e) {} }, 15000);
-
+  $("#generateBtn").addEventListener("click", () => { generate(); saveToStorage(); });
+  $("#copyBtn").addEventListener("click", copyResult);
+  $("#downloadBtn").addEventListener("click", downloadResult);
+  $("#sampleBtn").addEventListener("click", () => { fillSample(); saveToStorage(); });
+  $("#clearBtn").addEventListener("click", clearAll);
+  $("#collapseAll").addEventListener("click", collapseAll);
 }
-
 document.addEventListener("DOMContentLoaded", init);
+
 </script>
 </body>
 </html>
-
