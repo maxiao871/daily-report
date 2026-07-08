@@ -1623,7 +1623,7 @@ function clearCloudToken() {
 }
 
 const CLOUD_POLL_MS = 5000; // poll every 5s for updates from others
-const CLOUD_DEBOUNCE_MS = 300;  // push after 300ms of inactivity
+const CLOUD_DEBOUNCE_MS = 100;  // push after 300ms of inactivity
 
 // ── Merging helpers ──────────────────────────────────
 
@@ -1697,6 +1697,14 @@ function collectSummaryData() {
 
 /** Full data payload for cloud */
 function buildCloudPayload() {
+  // Sync DOM → personData before collecting
+  for (var i = 0; i < 4; i++) {
+    for (var fi = 0; fi < PERSON_FIELDS.length; fi++) {
+      var f = PERSON_FIELDS[fi];
+      var el = document.getElementById('p' + i + '_' + f.id);
+      if (el) personData[i][f.id] = el.value;
+    }
+  }
   return {
     version: 3,
     savedAt: new Date().toISOString(),
@@ -1754,14 +1762,19 @@ async function loadFromCloud() {
 
 // ── Save to cloud (immediate + queueing) ──────────────
 
-var cloudSaveQueue = null;
-var cloudSaveRetries = 0;
 
-async function saveToCloud(data) {
+async function saveToCloud(data, _attempt) {
   var token = getCloudToken();
   if (!token) return false;
-  if (cloudSaving) { cloudPendingSave = true; return false; }
+  if (!_attempt && cloudSaving) { cloudPendingSave = true; return false; }
   cloudSaving = true;
+  if (!_attempt) _attempt = 0;
+  
+  // Build a fresh payload from the DOM right now
+  var liveData = buildCloudPayload();
+  // But prefer passed-in data if it's the same context
+  if (!data || !data.people) data = liveData;
+  
   try {
     var content = JSON.stringify(data, null, 2);
     var encoded = btoa(unescape(encodeURIComponent(content)));
@@ -1778,8 +1791,44 @@ async function saveToCloud(data) {
     updateStatusBar();
     return true;
   } catch (e) {
+    // 409 Conflict: someone else pushed while we were editing
+    if (e.message.indexOf('409') >= 0 && _attempt < 5) {
+      console.warn('Cloud conflict (409), resolving attempt ' + (_attempt+1));
+      try {
+        // Re-fetch the latest cloud SHA + data
+        var fresh = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
+        if (fresh) {
+          cloudFileSHA = fresh.sha;
+          cloudLastKnownSHA = fresh.sha;
+          // Merge cloud data into local (fill empty fields, like before)
+          var freshBytes = atob(fresh.content);
+          var freshData = JSON.parse(decodeURIComponent(escape(freshBytes)));
+          mergeCloudData(freshData);
+          syncToDOM();
+          saveToLocalStorage();
+        }
+        // Wait a random backoff to break symmetry
+        await new Promise(function(r) { setTimeout(r, 100 + Math.random() * 500); });
+        // Re-build DOM payload and retry
+        cloudSaving = false;
+        return await saveToCloud(buildCloudPayload(), _attempt + 1);
+      } catch (e2) {
+        cloudSaving = false;
+        if (_attempt < 2) {
+          await new Promise(function(r) { setTimeout(r, 500); });
+          return await saveToCloud(buildCloudPayload(), _attempt + 1);
+        }
+        console.warn('Cloud save failed after conflicts:', e2.message);
+        return false;
+      }
+    }
+    // Network or other error
     cloudSaving = false;
-    if (cloudSaveRetries < 2) { cloudSaveRetries++; await saveToCloud(collectAllData()); }
+    if (_attempt < 2) {
+      await new Promise(function(r) { setTimeout(r, 1000); });
+      cloudFileSHA = null; // force refetch on retry
+      return await saveToCloud(buildCloudPayload(), _attempt + 1);
+    }
     console.warn('Cloud save failed:', e.message);
     return false;
   }
@@ -1791,7 +1840,6 @@ var cloudSaveTimer = null;
 function scheduleCloudSave() {
   var token = getCloudToken();
   if (!token) {
-    // Show a hint once per session
     if (!localStorage.getItem('cloudNoTokenHint')) {
       localStorage.setItem('cloudNoTokenHint', '1');
       setTimeout(function() { showToast('💡 设置团队同步 Token 后，数据会实时共享给其他设备', 'info', 6000); }, 5000);
@@ -1800,14 +1848,15 @@ function scheduleCloudSave() {
   }
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(function() {
-    unlessSavingCloud(buildCloudPayload());
+    // Use the conflict-resolving save directly
+    saveToCloud(null, 0);
   }, CLOUD_DEBOUNCE_MS);
 }
 
 async function unlessSavingCloud(data) {
   if (!getCloudToken()) return;
   if (cloudSaving) { cloudPendingSave = true; return; }
-  var ok = await saveToCloud(data);
+  var ok = await saveToCloud(data || buildCloudPayload(), 0);
   if (!ok) {
     console.warn('Cloud save failed, will retry on next edit');
     updateStatusBar();
