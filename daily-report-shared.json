@@ -1,33 +1,33 @@
 {
   "version": 3,
-  "savedAt": "2026-07-08T10:29:08.695Z",
+  "savedAt": "2026-07-08T10:30:33.388Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "7.8",
     "monthLabel": "7月",
     "todayPresale": "0",
-    "todayUnderwrite": "14.6",
+    "todayUnderwrite": "0",
     "monthPresale": "21.3",
-    "monthUnderwrite": "68.7",
+    "monthUnderwrite": "53",
     "monthTarget": "140",
-    "tomorrowEstimate": "",
-    "activityPeople": "50/20",
+    "tomorrowEstimate": "14",
+    "activityPeople": "50/16",
     "channelCount": "6/2",
     "specialTarget": "14",
     "specialMonth": "",
     "specialToday": "",
     "onlineMonth": "",
-    "offlineTrainingMonth": "2",
+    "offlineTrainingMonth": "1",
     "offlineActivityMonth": "",
-    "todayActiveFans": "4",
-    "todayHighPFans": "1",
-    "monthActiveFans": "20",
-    "monthHighPFans": "3"
+    "todayActiveFans": "0",
+    "todayHighPFans": "0",
+    "monthActiveFans": "16",
+    "monthHighPFans": "0"
   },
   "people": [
     {
       "name": "钟华",
-      "work": "佳泰培训",
+      "work": "大童粉丝经营交流沟通",
       "channelWork": "佳泰",
       "activity": "",
       "training": "佳泰走进国泰培训",
@@ -91,7 +91,7 @@
       "excellent": "",
       "improve": "",
       "plan": "粉丝经营，不全补件协助处理",
-      "premium": ""
+      "premium": "大童高端泰享年年10万3年趸交"
     }
   ]
 }
