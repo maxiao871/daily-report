@@ -911,7 +911,7 @@ function applyDataToForm(data) {
 
 function syncToDOM() {
   for (let i = 0; i < 4; i++) {
-    const card = $(".person-card")[i];
+    const card = $$(".person-card")[i];
     if (!card) continue;
     card.querySelector(".name-input").value = personData[i].name || DEFAULT_NAMES[i];
     for (const f of PERSON_FIELDS) {
