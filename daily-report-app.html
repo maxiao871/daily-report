@@ -149,6 +149,42 @@ button.paste-btn:hover { background: #fff8e7; }
   outline: none;
 }
 
+/* P1: auto-calc bar */
+.calc-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--line);
+  background: #f9fafb;
+}
+.calc-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.calc-item .calc-label { color: #475569; font-weight: 600; }
+.calc-item .calc-value { font-weight: 700; font-size: 14px; }
+.calc-item .calc-value.red { color: #e74c3c; }
+.calc-item .calc-value.orange { color: var(--warn); }
+.calc-item .calc-value.green { color: var(--success); }
+.progress-bar-outer {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.progress-bar-inner {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--success);
+  transition: width 0.3s;
+}
+.progress-bar-inner.low { background: #e74c3c; }
+.progress-bar-inner.mid { background: var(--warn); }
+
 /* person section */
 .person-section {
   border: 1px solid var(--line);
@@ -174,11 +210,15 @@ button.paste-btn:hover { background: #fff8e7; }
 
 /* person card */
 .person-card {
-  border: 1px solid var(--line);
+  border: 2px solid var(--line);
   border-radius: var(--radius);
   background: #fff;
   overflow: hidden;
 }
+.person-card.c0 { border-color: #3b82f6; }
+.person-card.c1 { border-color: #22c55e; }
+.person-card.c2 { border-color: #f97316; }
+.person-card.c3 { border-color: #8b5cf6; }
 .person-card-header {
   display: flex;
   align-items: center;
@@ -192,11 +232,21 @@ button.paste-btn:hover { background: #fff8e7; }
   border: 0;
   font-weight: 700;
   font-size: 15px;
-  width: 120px;
+  width: 100px;
   padding: 4px 0;
   background: transparent;
 }
 .person-card-header .name-input:focus { outline: none; }
+.person-card-header .completion-pct {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.person-card-header .completion-pct.low { color: #e74c3c; background: #fde8e8; }
+.person-card-header .completion-pct.mid { color: var(--warn); background: #fef5ec; }
+.person-card-header .completion-pct.high { color: var(--success); background: #eaf7ee; }
 .person-card-header .toggle-btn,
 .person-card-header .paste-toggle {
   border: 0;
@@ -425,6 +475,28 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
 }
 
 /* result */
+.result-tabs {
+  display: flex;
+  gap: 4px;
+}
+.result-tab {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px 6px 0 0;
+  background: #f1f5f9;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+.result-tab:hover { background: #e2e8f0; }
+.result-tab.active {
+  background: var(--panel);
+  color: var(--brand);
+  border-bottom-color: var(--panel);
+  font-weight: 600;
+}
 .result-section {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -437,6 +509,8 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   padding: 10px 14px;
   border-bottom: 1px solid var(--line);
   background: #fbfcfd;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 #result {
   display: block;
@@ -503,7 +577,7 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   <header class="topbar">
     <div>
       <h1>每日汇报填写汇总</h1>
-      <p>四位伙伴分别填写，一键生成三个汇报板块 <span style="background:#e67e22;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:bold;">v7.8-18:48</span></p>
+      <p>四位伙伴分别填写，一键生成三个汇报板块 <span style="background:#e67e22;color:#fff;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:bold;">v9-全面升级</span></p>
     </div>
     <div class="actions">
       <button id="pickFileBtn" type="button" class="secondary" title="连接本地JSON文件实现跨电脑同步（建议放网盘目录）">📁 设置同步文件</button>
@@ -529,33 +603,59 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
   <details class="summary-box" open>
     <summary>团队汇总数据</summary>
     <div class="summary-grid">
-      <label>汇报日期<input id="reportDate" type="text" /></label>
+      <label>汇报日期 <span style="color:red">*</span><input id="reportDate" type="date" title="格式如2024-07-08" /></label>
       <label>本月名称<input id="monthLabel" type="text" /></label>
-      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" /></label>
-      <label>今日承保万P<input id="todayUnderwrite" type="number" step="0.1" /></label>
-      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" /></label>
-      <label>本月累计承保万P<input id="monthUnderwrite" type="number" step="0.1" /></label>
-      <label>月目标万P<input id="monthTarget" type="number" step="0.1" /></label>
-      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" /></label>
-      <label>活动人力 目标/达成<input id="activityPeople" type="text" /></label>
-      <label>有效渠道 目标/达成<input id="channelCount" type="text" /></label>
-      <label>泰有鑫意月目标<input id="specialTarget" type="number" /></label>
-      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" /></label>
-      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" /></label>
-      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" /></label>
-      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" /></label>
-      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" /></label>
-      <label>今日新增活粉人数<input id="todayActiveFans" type="number" /></label>
-      <label>今日新增高P粉人数<input id="todayHighPFans" type="number" /></label>
-      <label>本月累计活粉人数<input id="monthActiveFans" type="number" /></label>
-      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" /></label>
+      <label>今日预收万P<input id="todayPresale" type="number" step="0.1" min="0" title="今日预收保费(万元)" /></label>
+      <label>今日承保万P <span style="color:red">*</span><input id="todayUnderwrite" type="number" step="0.1" min="0" title="今日实际承保(万元)" /></label>
+      <label>本月累计预收万P<input id="monthPresale" type="number" step="0.1" min="0" /></label>
+      <label>本月累计承保万P <span style="color:red">*</span><input id="monthUnderwrite" type="number" step="0.1" min="0" title="本月累计实际承保(万元)" /></label>
+      <label>月目标万P <span style="color:red">*</span><input id="monthTarget" type="number" step="0.1" min="0" title="本月目标(万元)" /></label>
+      <label>明日预估万P<input id="tomorrowEstimate" type="number" step="0.1" min="0" /></label>
+      <label>活动人力 目标/达成<input id="activityPeople" type="text" title="格式：目标/达成，如 4/3" /></label>
+      <label>有效渠道 目标/达成<input id="channelCount" type="text" title="格式：目标/达成，如 5/4" /></label>
+      <label>泰有鑫意月目标<input id="specialTarget" type="number" min="0" /></label>
+      <label>泰有鑫意本月业绩P<input id="specialMonth" type="number" min="0" /></label>
+      <label>泰有鑫意今日业绩P<input id="specialToday" type="number" min="0" /></label>
+      <label>本月累计线上品宣篇数<input id="onlineMonth" type="number" min="0" /></label>
+      <label>本月累计线下培训场数<input id="offlineTrainingMonth" type="number" min="0" /></label>
+      <label>本月累计线下活动场数<input id="offlineActivityMonth" type="number" min="0" /></label>
+      <label>今日新增活粉人数<input id="todayActiveFans" type="number" min="0" /></label>
+      <label>今日新增高P粉人数<input id="todayHighPFans" type="number" min="0" /></label>
+      <label>本月累计活粉人数<input id="monthActiveFans" type="number" min="0" /></label>
+      <label>本月累计高P粉人数<input id="monthHighPFans" type="number" min="0" /></label>
+    </div>
+    <div class="calc-bar" id="calcBar">
+      <div class="calc-item">
+        <span class="calc-label">📈 月达成率</span>
+        <span class="calc-value" id="calcMonthRate">--</span>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="calcProgressBar" style="width:0%"></div></div>
+      </div>
+      <div class="calc-item">
+        <span class="calc-label">📊 活动人力达成率</span>
+        <span class="calc-value" id="calcActivityRate">--</span>
+      </div>
+      <div class="calc-item">
+        <span class="calc-label">📡 有效渠道达成率</span>
+        <span class="calc-value" id="calcChannelRate">--</span>
+      </div>
+      <div class="calc-item">
+        <span class="calc-label">👤 今日新增活粉</span>
+        <span class="calc-value" id="calcTodayActiveFans">--</span>
+      </div>
+      <div class="calc-item">
+        <span class="calc-label">⭐ 今日新增高P粉</span>
+        <span class="calc-value" id="calcTodayHighPFans">--</span>
+      </div>
     </div>
   </details>
 
   <section class="person-section">
     <div class="person-section-header">
-      <h2>四人填写区</h2>
-      <button id="collapseAll" type="button" class="secondary small">全部折叠</button>
+      <h2>四人填写区 <span id="personFilledCount" style="font-size:12px;font-weight:400;color:var(--muted);margin-left:8px;">已填写 0/4 人</span></h2>
+      <div style="display:flex;gap:6px;">
+        <button id="expandAllPersons" type="button" class="secondary small">全部展开</button>
+        <button id="collapseAllPersons" type="button" class="secondary small">全部收起</button>
+      </div>
     </div>
     <div class="person-grid" id="personGrid"></div>
   </section>
@@ -581,9 +681,13 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
 
   <section class="result-section">
     <div class="result-header">
-      <h2>生成结果</h2>
+      <div class="result-tabs" id="resultTabs">
+        <button class="result-tab active" data-tab="0">📋 大区汇总</button>
+        <button class="result-tab" data-tab="1">📊 总经理简报</button>
+        <button class="result-tab" data-tab="2">🏃 行动量追踪</button>
+      </div>
       <div class="actions">
-        <button id="copyBtn" type="button" class="secondary">复制全文</button>
+        <button id="copyBtn" type="button" class="secondary">复制当前Tab</button>
         <button id="downloadBtn" type="button" class="secondary">下载文本</button>
       </div>
     </div>
@@ -876,7 +980,9 @@ function scheduleSaveFlash() {
 // ── Unified auto-save ────────────────────────────────────
 function autoSave() {
   saveToLocalStorage();           // Always save to localStorage immediately
+  saveSnapshot();                 // Update snapshot for auto-calc
   scheduleFileWrite();            // Debounced file write
+  refreshCalcBar();               // Refresh calc display
 }
 
 // Also trigger flash periodically (every 30s if there's activity)
@@ -1083,7 +1189,7 @@ function parseGlobalPaste(raw) {
   const personChunks = [];
 
   // Pattern 1: Explicit person headers like "伙伴1：" "1." "一、"
-  const headerSplit = text.split(/\n(?=(?:伙伴)?[1-4][。、.：:)])|\n(?=[一二三四][、。.])|\n(?=\d[、.．]\s*\S{2,4}\n)/);
+  const headerSplit = text.split(/\n(?=(?:伙伴)?[1-4][。、.：)])|\n(?=[一二三四][、。.])|\n(?=\d[、.．]\s*\S{2,4}\n)/);
 
   if (headerSplit.length > 1) {
     for (const chunk of headerSplit) {
@@ -1186,15 +1292,20 @@ function buildCards() {
   const grid = document.getElementById("personGrid");
   grid.innerHTML = "";
   for (let i = 0; i < 4; i++) {
-    const card = E("div", { className: "person-card", "data-idx": i });
+    const card = E("div", { className: "person-card c"+i, "data-idx": i });
+
+    // Completion percentage span
+    const compSpan = E("span", { className: "completion-pct", id: "compPct_"+i, textContent: "0%" });
 
     // Header with name + toggle + paste button
     const header = E("div", { className: "person-card-header" });
     const nameInput = E("input", {
       type: "text", className: "name-input", value: DEFAULT_NAMES[i],
-      onInput: (e) => { personData[i].name = e.target.value; autoSave(); },
+      onInput: (e) => { personData[i].name = e.target.value; autoSave(); updatePersonCompletion(); },
     });
     personData[i].name = DEFAULT_NAMES[i];
+
+    // Completion span (created above)
 
     const pasteToggle = E("button", {
       type: "button", className: "paste-toggle", textContent: "📋 粘贴",
@@ -1216,7 +1327,7 @@ function buildCards() {
         toggleBtn.textContent = hidden ? "收起" : "展开";
       },
     });
-    header.append(nameInput, pasteToggle, toggleBtn);
+    header.append(nameInput, compSpan, pasteToggle, toggleBtn);
 
     // Form body
     const body = E("div", { className: "person-body" });
@@ -1233,6 +1344,7 @@ function buildCards() {
       input.addEventListener("input", (e) => {
         personData[i][f.id] = e.target.value;
         autoSave();
+        updatePersonCompletion();
       });
       label.append(f.label, input);
       body.append(label);
@@ -1278,9 +1390,109 @@ function buildCards() {
   }
 }
 
+// ── P1: Auto-calc and snapshot ──────────────────────────
+const SNAPSHOT_KEY = 'dailyReportData_v3_snapshot';
+
+function getSnapshot() {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY);
+    return raw ? JSON.parse(raw) : { monthActiveFans: 0, monthHighPFans: 0 };
+  } catch(e) { return { monthActiveFans: 0, monthHighPFans: 0 }; }
+}
+
+function saveSnapshot() {
+  const snap = {
+    monthActiveFans: n($('#monthActiveFans').value),
+    monthHighPFans: n($('#monthHighPFans').value),
+    savedAt: new Date().toISOString()
+  };
+  localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snap));
+}
+
+function refreshCalcBar() {
+  const underwrite = n($('#monthUnderwrite').value);
+  const target = n($('#monthTarget').value);
+  const monthRate = target > 0 ? Math.round(underwrite / target * 100) : 0;
+  
+  const [$aTarg, $aDone] = splitPair($('#activityPeople').value);
+  const actRate = $aTarg && $aTarg > 0 ? Math.round($aDone / $aTarg * 100) : 0;
+  
+  const [$cTarg, $cDone] = splitPair($('#channelCount').value);
+  const chRate = $cTarg && $cTarg > 0 ? Math.round($cDone / $cTarg * 100) : 0;
+  
+  const snap = getSnapshot();
+  const monthAF = n($('#monthActiveFans').value);
+  const monthHPF = n($('#monthHighPFans').value);
+  const todayAF = Math.max(0, monthAF - (snap.monthActiveFans || 0));
+  const todayHPF = Math.max(0, monthHPF - (snap.monthHighPFans || 0));
+  
+  // Month rate
+  const mrEl = $('#calcMonthRate');
+  mrEl.textContent = monthRate + '%';
+  mrEl.className = 'calc-value ' + (monthRate < 50 ? 'red' : monthRate < 80 ? 'orange' : 'green');
+  
+  const pbEl = $('#calcProgressBar');
+  pbEl.style.width = Math.min(100, monthRate) + '%';
+  pbEl.className = 'progress-bar-inner ' + (monthRate < 50 ? 'low' : monthRate < 80 ? 'mid' : '');
+  
+  // Activity rate
+  const arEl = $('#calcActivityRate');
+  arEl.textContent = $aTarg ? actRate + '%' : '--';
+  arEl.className = 'calc-value ' + (actRate < 50 ? 'red' : actRate < 80 ? 'orange' : 'green');
+  
+  // Channel rate
+  const crEl = $('#calcChannelRate');
+  crEl.textContent = $cTarg ? chRate + '%' : '--';
+  crEl.className = 'calc-value ' + (chRate < 50 ? 'red' : chRate < 80 ? 'orange' : 'green');
+  
+  // Today active fans
+  const tafEl = $('#calcTodayActiveFans');
+  tafEl.textContent = todayAF;
+  tafEl.className = 'calc-value';
+  // Sync to todayActiveFans if empty
+  const tafInput = $('#todayActiveFans');
+  if (!tafInput.value && todayAF > 0) tafInput.value = todayAF;
+  
+  // Today high-P fans
+  const thpfEl = $('#calcTodayHighPFans');
+  thpfEl.textContent = todayHPF;
+  thpfEl.className = 'calc-value';
+  const thpfInput = $('#todayHighPFans');
+  if (!thpfInput.value && todayHPF > 0) thpfInput.value = todayHPF;
+}
+
+function attachCalcListeners() {
+  ['monthUnderwrite','monthTarget','activityPeople','channelCount','monthActiveFans','monthHighPFans'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('input', refreshCalcBar);
+  });
+  refreshCalcBar();
+}
+
+// ── P2: Person completion tracking ──────────────────────
+function updatePersonCompletion() {
+  const totalFields = PERSON_FIELDS.length;
+  let filledCount = 0;
+  for (let i = 0; i < 4; i++) {
+    const nonEmpty = PERSON_FIELDS.filter(function(f) {
+      const v = personData[i][f.id];
+      return v !== undefined && v !== null && String(v).trim() !== '';
+    }).length;
+    const pct = totalFields > 0 ? Math.round(nonEmpty / totalFields * 100) : 0;
+    const span = document.getElementById('compPct_' + i);
+    if (span) {
+      span.textContent = pct + '%';
+      span.className = 'completion-pct ' + (pct < 20 ? 'low' : pct < 60 ? 'mid' : 'high');
+    }
+    if (nonEmpty > 0) filledCount++;
+  }
+  const countEl = document.getElementById('personFilledCount');
+  if (countEl) countEl.textContent = '已填写 ' + filledCount + '/4 人';
+}
+
 // ── attach summary + result auto-save ───────────────────
 function attachSummaryAutoSave() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'].concat(['todayActiveFans','todayHighPFans']);
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', autoSave);
@@ -1370,15 +1582,36 @@ function merge(people) {
 }
 
 // ── render report ───────────────────────────────────────
-function render(s, people, m) {
-  const dateCode = s.date.replace(/\./g,"");
+// Tab 0: 大区汇总
+function renderRegionReport(s, people, m) {
+  const dateCode = fmtDateCode(s.date);
   const ml = s.monthLabel;
   const completion = s.monthTarget ? `${Math.round(s.monthUnderwrite/s.monthTarget*100)}%` : "0%";
-  const specialGap = s.specialMonth - s.specialTarget;
-
   const workItems = unique(m.work);
   const planItems = unique(m.plan);
   const premiumItems = unique(m.premium);
+  const workContent = workItems.length ? numberLines(workItems) : ["无"];
+  const planContent = planItems.length ? numberLines(planItems) : ["无"];
+  const premiumContent = premiumItems.length ? premiumItems : ["暂无"];
+  return [
+    `【${dateCode}多元汇报】`, "",
+    "一、目标进度",
+    `今日预收${fmt(s.todayPresale)}万p，今日承保${fmt(s.todayUnderwrite)}万p；${ml}累计预收${fmt(s.monthPresale)}万p，承保${fmt(s.monthUnderwrite)}万p；`,
+    `${ml}活动人力目标${fmt(s.activityTarget)}人，达成${fmt(s.activityDone)}人；有效渠道目标${fmt(s.channelTarget)}个，达成${fmt(s.channelDone)}个。`,
+    `${ml}目标${fmt(s.monthTarget)}万，任务达成${completion}`,
+    "", "二、今日工作总结：", ...workContent,
+    "", "三、明日工作计划：", ...planContent,
+    "", "三、明日保费预估：", ...premiumContent,
+  ].join("\n");
+}
+
+// Tab 1: 总经理简报
+function renderGMReport(s, people, m) {
+  const dateCode = fmtDateCode(s.date);
+  const specialGap = s.specialMonth - s.specialTarget;
+  const channel = unique(m.channelWork).join("、") || "无";
+  const activity = unique(m.activity).join("、") || "无";
+  const training = unique(m.training).join("、") || "无";
 
   const excellentNames = m.excellent.map(e => e.name).filter(onlyUnique).join("、");
   const excellentTexts = m.excellent.map(e => e.text).filter(onlyUnique).join("；");
@@ -1390,24 +1623,9 @@ function render(s, people, m) {
   const improveTexts = m.improve.map(e => e.text).filter(onlyUnique).join("；");
   const improve = m.improve.length ? `${improveNames}；${improveTexts}` : "无";
 
-  const channel = unique(m.channelWork).join("、") || "无";
-  const activity = unique(m.activity).join("、") || "无";
-  const training = unique(m.training).join("、") || "无";
-  const workContent = workItems.length ? numberLines(workItems) : ["无"];
-  const planContent = planItems.length ? numberLines(planItems) : ["无"];
-  const premiumContent = premiumItems.length ? premiumItems : ["暂无"];
+  const planItems = unique(m.plan);
 
   return [
-    "一、", "",
-    `【${dateCode}多元汇报】`, "",
-    "一、目标进度",
-    `今日预收${fmt(s.todayPresale)}万p，今日承保${fmt(s.todayUnderwrite)}万p；${ml}累计预收${fmt(s.monthPresale)}万p，承保${fmt(s.monthUnderwrite)}万p；`,
-    `${ml}活动人力目标${fmt(s.activityTarget)}人，达成${fmt(s.activityDone)}人；有效渠道目标${fmt(s.channelTarget)}个，达成${fmt(s.channelDone)}个。`,
-    `${ml}目标${fmt(s.monthTarget)}万，任务达成${completion}`,
-    "", "二、今日工作总结：", ...workContent,
-    "", "三、明日工作计划：", ...planContent,
-    "", "三、明日保费预估：", ...premiumContent,
-    "", "", "二、", "",
     `四川分多元日报${dateCode}`, "",
     "一、【泰有鑫意品宣推动及业绩情况】",
     "（一）品宣",
@@ -1434,17 +1652,35 @@ function render(s, people, m) {
     `1.明日重点工作：${filterTomorrowPlan(planItems)}`,
     `2.培训：${makeItem(planItems, ["培训","宣导"])}`,
     `3.活动：${makeItem(planItems, ["活动","沙龙"])}`,
-    "", "", "三、", "",
-    `【${s.date}日多元汇报】今日预收${fmt(s.todayPresale)}万P，本月累计预收${fmt(s.monthPresale)}万P，累计承保${fmt(s.monthUnderwrite)}万P；明日预估${fmt(s.tomorrowEstimate)}万P`,
   ].join("\n");
 }
 
+// Tab 2: 行动量追踪
+function renderActionReport(s, people, m) {
+  const ml = s.monthLabel;
+  return [
+    `【${s.date}日多元汇报】`,
+    `今日预收${fmt(s.todayPresale)}万P，`,
+    `${ml}累计预收${fmt(s.monthPresale)}万P，累计承保${fmt(s.monthUnderwrite)}万P；`,
+    `明日预估${fmt(s.tomorrowEstimate)}万P`,
+  ].join("");
+}
+
 // ── generator ───────────────────────────────────────────
+// Render all tabs and store results in data-reports attribute on #result
 function generate() {
   const s = getSummary();
   const people = getPeople().filter(p => p.work.length || p.plan.length || p.premium.length || p.excellent || p.improve);
   const m = merge(people);
-  $("#result").value = render(s, people, m);
+  const tab0 = renderRegionReport(s, people, m);
+  const tab1 = renderGMReport(s, people, m);
+  const tab2 = renderActionReport(s, people, m);
+  
+  // Store all reports as JSON in a data attribute
+  $('#result').setAttribute('data-reports', JSON.stringify([tab0, tab1, tab2]));
+  // Show active tab
+  const activeTab = parseInt($$('.result-tab.active', $('#resultTabs'))[0].getAttribute('data-tab') || '0');
+  $('#result').value = [tab0, tab1, tab2][activeTab];
   autoSave();
 }
 
@@ -1468,6 +1704,29 @@ function downloadResult() {
   const a = E("a", { href: url, download: `每日汇报_${new Date().toISOString().slice(0,10)}.txt` });
   a.click(); a.remove();
   URL.revokeObjectURL(url);
+}
+
+// ── Tab switching ────────────────────────────────────────
+function switchResultTab(tabIdx) {
+  const raw = $('#result').getAttribute('data-reports');
+  if (!raw) return;
+  try {
+    const reports = JSON.parse(raw);
+    if (reports[tabIdx] !== undefined) {
+      $('#result').value = reports[tabIdx];
+    }
+  } catch(e) {}
+}
+
+function initResultTabs() {
+  const tabs = $$('.result-tab', $('#resultTabs'));
+  tabs.forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      tabs.forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      switchResultTab(parseInt(tab.getAttribute('data-tab')));
+    });
+  });
 }
 
 // ── export / import JSON ────────────────────────────────
@@ -1540,11 +1799,12 @@ function fillSample() {
     card.querySelector(".toggle-btn").textContent = "收起";
   }
   generate();
+  updatePersonCompletion();
 }
 
 // ── clear ───────────────────────────────────────────────
 function clearAll() {
-  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','todayActiveFans','todayHighPFans','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
+  const summaryIds = ['reportDate','monthLabel','todayPresale','todayUnderwrite','monthPresale','monthUnderwrite','monthTarget','tomorrowEstimate','activityPeople','channelCount','specialTarget','specialMonth','specialToday','onlineMonth','offlineTrainingMonth','offlineActivityMonth','todayActiveFans','todayHighPFans','monthActiveFans','monthHighPFans'];
   summaryIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   for (let i = 0; i < 4; i++) {
     const card = $$(".person-card")[i];
@@ -1557,16 +1817,33 @@ function clearAll() {
     }
   }
   $("#result").value = "";
+  $("#result").removeAttribute('data-reports');
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(SNAPSHOT_KEY);
   if (fileHandle) writeToFileNow(fileHandle);
+  refreshCalcBar();
+  updatePersonCompletion();
   showToast('已清空所有数据', 'success');
 }
 
 // ── utilities ───────────────────────────────────────────
 function n(v) { return Number(v || 0); }
+function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
+function fmtDate(d) {
+  // Handle both formats: "7.8" and "2024-07-08"
+  if (!d) return '';
+  if (d.includes('-')) {
+    const parts = d.split('-');
+    return parseInt(parts[1]) + '.' + parseInt(parts[2]);
+  }
+  return d;
+}
+function fmtDateCode(d) {
+  const fd = fmtDate(d);
+  return fd.replace(/\./g,'');
+}
 const TOMORROW_KEYWORDS = ["明亚","大童","保通","泛华","嘉诚","年丰","京东","恒邦","宝瑞","梧桐树","小雨伞","多保鱼","水滴","慧择","微保","蚂蚁","友邦","中信","招商信诺","安联","中意","泰康","太平","新华","平安","国寿","太保","阳光","交银","建信","工银","中信保诚","复星","众安","信泰","长城","百年","招商仁和","横琴","昆仑","渤海","珠江","前海","富德","华夏","天安","国华人寿","光大永明","君康","弘康","和泰","华贵","鼎诚","北京人寿","海峡","爱心"];
 function lines(v) { return String(v||"").split("\n").map(s=>s.trim()).filter(Boolean); }
-function fmt(v) { const x = n(v); return Number.isInteger(x) ? String(x) : String(x); }
 function onlyUnique(v, i, a) { return a.indexOf(v) === i; }
 function splitPair(v) { const nums = String(v).match(/\d+(?:\.\d+)?/g) || []; return [n(nums[0]), n(nums[1])]; }
 function numberLines(items) { return items.length ? items.map((item, i) => `${i+1}、${item}`) : ["无"]; }
@@ -1582,12 +1859,20 @@ function filterTomorrowPlan(items) {
   return filtered.length ? filtered.join("、") : "待定";
 }
 
-// ── collapse all ────────────────────────────────────────
+// ── collapse all / expand all ─────────────────────────────
 function collapseAll() {
   $$(".person-card").forEach(card => {
     const body = card.querySelector(".person-body");
     const btn = card.querySelector(".toggle-btn");
     if (body.style.display !== "none") { body.style.display = "none"; btn.textContent = "展开"; }
+  });
+}
+
+function expandAll() {
+  $$(".person-card").forEach(card => {
+    const body = card.querySelector(".person-body");
+    const btn = card.querySelector(".toggle-btn");
+    if (body.style.display === "none" || body.style.display === "") { body.style.display = ""; btn.textContent = "收起"; }
   });
 }
 
@@ -1984,10 +2269,14 @@ async function manualSave() {
     saveToLocalStorage();
     if (fileHandle) { await writeToFileNow(fileHandle); }
     if (getCloudToken()) { await saveToCloud(buildCloudPayload(), 0); }
+    saveSnapshot();
+    refreshCalcBar();
+    updatePersonCompletion();
     btn.textContent = '✅ 已保存';
     setTimeout(function() { btn.textContent = '💾 保存'; btn.disabled = false; }, 1500);
     updateStatusBar();
   } catch(e) { btn.textContent = '❌ 失败'; setTimeout(function(){ btn.textContent='💾 保存'; btn.disabled=false; }, 2000); }
+}
 
 // ── init ────────────────────────────────────────────────
 async function init() {
@@ -2016,7 +2305,7 @@ async function init() {
     if (document.hidden) { 
       try { saveToLocalStorage(); } catch(e) {} 
       if (getCloudToken() && !cloudSaving) { 
-        unlessSavingCloud(buildCloudPayload()); 
+        saveToCloud(buildCloudPayload(), 0); 
       } 
     } 
   });
@@ -2079,7 +2368,8 @@ async function init() {
     $("#downloadBtn").addEventListener("click", downloadResult);
     $("#sampleBtn").addEventListener("click", fillSample);
     $("#clearBtn").addEventListener("click", clearAll);
-    $("#collapseAll").addEventListener("click", collapseAll);
+    $("#collapseAllPersons").addEventListener("click", collapseAll);
+    $("#expandAllPersons").addEventListener("click", expandAll);
     $("#pickFileBtn").addEventListener("click", pickSaveFile);
     $("#exportBtn").addEventListener("click", exportJSON);
     $("#importBtn").addEventListener("click", importJSON);
@@ -2088,6 +2378,9 @@ async function init() {
 
   try { initGlobalPaste(); } catch(e) { console.warn('initGlobalPaste:', e); }
   try { setupSyncDialog(); } catch(e) { console.warn('setupSyncDialog:', e); }
+  try { attachCalcListeners(); } catch(e) { console.warn('attachCalcListeners:', e); }
+  try { initResultTabs(); } catch(e) { console.warn('initResultTabs:', e); }
+  try { updatePersonCompletion(); } catch(e) { console.warn('updatePersonCompletion:', e); }
 
   // Phase 4: Cloud (best-effort)
   try { if (getCloudToken()) startCloudPolling(); } catch(e) { console.warn('startCloudPolling:', e); }
