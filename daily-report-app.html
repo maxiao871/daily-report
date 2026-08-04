@@ -667,10 +667,10 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
     </div>
     <div class="paste-section-body" id="globalPasteBody">
       <div class="paste-hint">
-        💡 把伙伴发来的汇报文字粘进来，点击「解析填充」自动填入上方对应区域。<br>
-        支持：<code>名字：</code>区分多人 / <code>键：值</code> / 自由文本（自动识别数字）
+        💡 把伙伴发来的汇报文字粘进来，<b>第一行写名字</b>，点「解析填充」自动填入对应伙伴卡片。<br>
+        支持：<code>键：值</code> / 自由文本（自动识别数字）/ 分段标题（今日工作/明日计划/保费预估）
       </div>
-      <textarea id="globalPasteArea" placeholder="在此粘贴伙伴发来的汇报内容……&#10;&#10;示例：&#10;伙伴1：&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;今日工作：明亚驻点沟通，泰有鑫意���对一宣导&#10;明日工作计划：明亚驻点，线索落地追踪&#10;&#10;伙伴2：&#10;渠道经营：大童、年中会&#10;有效������人数：10&#10;……"></textarea>
+      <textarea id="globalPasteArea" placeholder="第一行写伙伴名字，后面粘贴汇报内容……&#10;&#10;示例：&#10;李红霞&#10;今日工作：&#10;明亚驻点沟通，泰有鑫意一对一宣导&#10;渠道经营：明亚、保通驻点&#10;有效面谈人数：12&#10;计划书递送份数：2&#10;新增粉丝人数：3&#10;表现亮点：泰有鑫意有线索&#10;明日工作计划：明亚驻点，线索落地追踪&#10;明日保费预估：明亚泰给利5万趸&#10;&#10;（第一行写谁的名字，就填入谁的卡片）"></textarea>
       <div class="paste-actions">
         <button id="globalPasteParseBtn" type="button">🔳 解析填充</button>
         <button id="globalPasteClearBtn" type="button" class="secondary">清空粘贴区</button>
@@ -1180,58 +1180,37 @@ function fillPersonFromData(personIdx, data) {
 }
 
 // ── Global paste parser (multi-person) ───────────────────
+// 全局粘贴：第一行是名字 → 匹配四人卡片 → 只填那个人
 function parseGlobalPaste(raw) {
   const text = raw.trim();
-  if (!text) return [];
+  if (!text) return null;
 
-  // Try to split by person delimiters: 1. / 一、/ 伙伴1：/ 姓名：
-  // Also handle numbered patterns like "1. 李红霞" or free text chunks
-  const personChunks = [];
+  // 第一行 = 名字
+  const firstLineEnd = text.indexOf('\n');
+  const nameLine = firstLineEnd > 0 ? text.slice(0, firstLineEnd).trim() : text;
+  const restText = firstLineEnd > 0 ? text.slice(firstLineEnd + 1).trim() : '';
 
-  // Pattern 1: Explicit person headers like "伙伴1：" "1." "一、"
-  const headerSplit = text.split(/\n(?=(?:伙伴)?[1-4][。、.：)])|\n(?=[一二三四][、。.])|\n(?=\d[、.．]\s*\S{2,4}\n)/);
+  // 去掉名字行可能带的冒号、"："、空格
+  const searchName = nameLine.replace(/[：:]\s*$/, '').trim();
 
-  if (headerSplit.length > 1) {
-    for (const chunk of headerSplit) {
-      if (chunk.trim()) personChunks.push(chunk.trim());
-    }
-  } else {
-    // Pattern 2: Split by double newlines (each block is a person)
-    const blocks = text.split(/\n\s*\n/).filter(b => b.trim());
-    if (blocks.length >= 2 && blocks.length <= 4) {
-      for (const b of blocks) personChunks.push(b.trim());
-    } else {
-      // Pattern 3: Look for name lines as delimiters
-      const namePattern = /(?:^|\n)([^\n]{2,4})(?:：|:)?\s*\n/g;
-      let lastIdx = 0;
-      let lastPerson = '';
-      let match;
-      const parts = [];
-      while ((match = namePattern.exec(text)) !== null) {
-        if (lastIdx > 0) parts.push(text.slice(lastIdx, match.index).trim());
-        lastIdx = match.index;
-      }
-      if (lastIdx > 0) parts.push(text.slice(lastIdx).trim());
-      if (parts.length >= 2 && parts.length <= 4) {
-        for (const p of parts) personChunks.push(p);
-      }
+  // 匹配四人卡片名字
+  let matchIdx = -1;
+  for (let i = 0; i < 4; i++) {
+    var cardEl = document.querySelector('.person-card[data-idx="' + i + '"]');
+    if (!cardEl) continue;
+    var nameEl = cardEl.querySelector('.name-input');
+    var cardName = (nameEl ? nameEl.value : '') || personData[i].name || DEFAULT_NAMES[i];
+    if (cardName === searchName || cardName.includes(searchName) || searchName.includes(cardName)) {
+      matchIdx = i; break;
     }
   }
 
-  // If still no split, treat the whole thing as one person's data (fill person 1 only)
-  if (personChunks.length === 0) personChunks.push(text);
+  // 如果名字不匹配四人，给提示
+  if (matchIdx < 0) return { error: 'no_match', name: searchName };
 
-  // Parse each chunk and map to person index
-  const results = [];
-  for (let i = 0; i < Math.min(personChunks.length, 4); i++) {
-    const data = parsePasteText(personChunks[i], i);
-    if (Object.keys(data).length > 0) {
-      results.push({ idx: i, data: data });
-    } else {
-      results.push({ idx: i, data: { work: personChunks[i] } });
-    }
-  }
-  return results;
+  // 后面内容用 parsePasteText 解析
+  const data = parsePasteText(restText, matchIdx);
+  return { idx: matchIdx, data: data, name: searchName };
 }
 
 function initGlobalPaste() {
@@ -1243,23 +1222,34 @@ function initGlobalPaste() {
     toggleBtn.textContent = collapsed ? '展开' : '收起';
   });
 
-  // Parse button
+  // 解析按钮：第一行名字 → 匹配卡片 → 只填那个人
   $('#globalPasteParseBtn').addEventListener('click', () => {
-    const raw = $('#globalPasteArea').value.trim();
+    var raw = $('#globalPasteArea').value.trim();
     if (!raw) { showToast('请先粘贴内容', 'error'); return; }
 
-    const results = parseGlobalPaste(raw);
-    let totalFields = 0;
+    var result = parseGlobalPaste(raw);
+    var msg = $('#globalPasteMsg');
+    msg.style.display = 'inline';
 
-    for (const r of results) {
-      fillPersonFromData(r.idx, r.data);
-      totalFields += Object.keys(r.data).filter(k => r.data[k] !== undefined && r.data[k] !== '').length;
+    if (!result) {
+      msg.textContent = '⚠️ 无法识别内容';
+      msg.style.color = '#e74c3c';
+      setTimeout(function() { msg.style.display = 'none'; msg.style.color = 'var(--success)'; }, 3000);
+      return;
     }
 
-    const msg = $('#globalPasteMsg');
-    msg.style.display = 'inline';
-    msg.textContent = '✓ 已解析填充 ' + results.length + ' 人，共 ' + totalFields + ' 个字段';
-    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    if (result.error === 'no_match') {
+      msg.textContent = '⚠️ 未匹配到名字「' + result.name + '」，请先在四人区填写名字';
+      msg.style.color = '#e74c3c';
+      setTimeout(function() { msg.style.display = 'none'; msg.style.color = 'var(--success)'; }, 4000);
+      return;
+    }
+
+    fillPersonFromData(result.idx, result.data);
+    var filledCount = Object.keys(result.data).filter(function(k) { return result.data[k] !== undefined && result.data[k] !== ''; }).length;
+    msg.textContent = '✓ 已填入「' + result.name + '」，' + filledCount + ' 个字段';
+    msg.style.color = 'var(--success)';
+    setTimeout(function() { msg.style.display = 'none'; }, 3000);
   });
 
   // Clear button
