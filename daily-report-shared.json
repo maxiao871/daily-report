@@ -1,33 +1,33 @@
 {
   "version": 3,
-  "savedAt": "2026-08-04T10:07:27.054Z",
+  "savedAt": "2026-08-04T10:42:19.027Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "",
-    "monthLabel": "7月",
+    "monthLabel": "7",
     "todayPresale": "0",
-    "todayUnderwrite": "14.6",
+    "todayUnderwrite": "0",
     "monthPresale": "21.3",
-    "monthUnderwrite": "68.7",
+    "monthUnderwrite": "53",
     "monthTarget": "140",
     "tomorrowEstimate": "14",
-    "activityPeople": "50/20",
+    "activityPeople": "50/16",
     "channelCount": "6/2",
     "specialTarget": "14",
     "specialMonth": "",
     "specialToday": "",
     "onlineMonth": "",
-    "offlineTrainingMonth": "2",
+    "offlineTrainingMonth": "1",
     "offlineActivityMonth": "",
-    "todayActiveFans": "4",
-    "todayHighPFans": "1",
-    "monthActiveFans": "20",
-    "monthHighPFans": "3"
+    "todayActiveFans": "0",
+    "todayHighPFans": "0",
+    "monthActiveFans": "16",
+    "monthHighPFans": "0"
   },
   "people": [
     {
       "name": "钟华",
-      "work": "刘杰\n【泰有鑫意品宣推动及业绩情况】\n(一) 品宣",
+      "work": "大童粉丝经营交流沟通",
       "channelWork": "佳泰",
       "activity": "",
       "training": "佳泰走进国泰培训",
@@ -44,7 +44,7 @@
     },
     {
       "name": "李红霞",
-      "work": "线上    篇\n线下培训 1场，线下活动     0场",
+      "work": "保通粉丝经营交流沟通",
       "channelWork": "保通",
       "activity": "",
       "training": "保通泰有鑫意培训",
@@ -61,7 +61,7 @@
     },
     {
       "name": "朱中国",
-      "work": "2.泰有鑫意本月累计品宣:\n线上    0篇\n线下培训  1场，线下活动     0场\n(二) 业绩",
+      "work": "明亚粉丝经营交流沟通",
       "channelWork": "明亚",
       "activity": "",
       "training": "",
@@ -78,7 +78,7 @@
     },
     {
       "name": "刘杰",
-      "work": "【泰有鑫意品宣推动及业绩情况】\n(一) 品宣\n线上    篇\n线下培训 1场，线下活动     0场\n2.泰有鑫意本月累计品宣:\n线上    0篇\n线下培训  1场，线下活动     0场\n(二) 业绩\n1.泰有鑫意本月目标:5万\n3.泰有鑫意当月累计业绩P:0\n4.距离目标差额:5万\n1.渠道经营：\n泛华绩优本部培训，泰有鑫意培训\n大童高端绩优线上经营\n大童高端，年丰驻点\n业务推动沟通\n夏令营活动推动\n线索单追踪",
+      "work": "大童高端驻点\n网格粉丝经营\n各渠道录单协助",
       "channelWork": "大童",
       "activity": "",
       "training": "",
@@ -90,8 +90,8 @@
       "specialAct": "0",
       "excellent": "",
       "improve": "",
-      "plan": "大童高端，年丰驻点\n业务推动沟通\n夏令营活动推动\n线索单追踪",
-      "premium": "泛华泰宝贝6000\n2.活动赋能：\n3.培训辅导:泛华本部泰有鑫意培训\n4.粉丝经营:今日完成有效面谈人数  9、计划书递送份数2、新增粉丝人数  0、新增活粉人数   0、新增高P粉人数 0"
+      "plan": "粉丝经营，不全补件协助处理",
+      "premium": "大童高端泰享年年10万3年趸交"
     }
   ]
 }
