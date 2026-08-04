@@ -1056,25 +1056,27 @@ function parsePasteText(raw, personIdx) {
   let planLines = [];
   let premiumLines = [];
   let restLines = [];
+  let hasExplicitWorkHeader = false;
+  let hasExplicitPlanHeader = false;
+  let hasExplicitPremiumHeader = false;
 
-  // Keywords for routing
-  const workKeywords = ['今日工作', '工作内容', '工作', '今天', '今日'];
-  const planKeywords = ['明日工作计划', '明日计划', '明日', '明天计划', '明日工作', '明天'];
-  const premiumKeywords = ['保费预估', '保费', '明日保费', '预估保费', '预估'];
+  // Keywords for routing（去掉泛词「工作」「今日」，只保留明确标题）
+  const workKeywords = ['今日工作', '工作内容', '今天工作'];
+  const planKeywords = ['明日工作计划', '明日计划', '明天计划', '明日工作', '明天工作'];
+  const premiumKeywords = ['保费预估', '明日保费', '预估保费'];
 
-  let currentSection = 'work'; // default bucket
+  let currentSection = null; // 不再默认 catch-all
 
   for (const line of lines) {
     // Detect section changes
     const lc = line.toLowerCase().replace(/\s+/g, '');
-    if (workKeywords.some(k => lc.includes(k))) { currentSection = 'work'; continue; }
-    if (planKeywords.some(k => lc.includes(k))) { currentSection = 'plan'; continue; }
-    if (premiumKeywords.some(k => lc.includes(k))) { currentSection = 'premium'; continue; }
+    if (workKeywords.some(k => lc.includes(k))) { currentSection = 'work'; hasExplicitWorkHeader = true; continue; }
+    if (planKeywords.some(k => lc.includes(k))) { currentSection = 'plan'; hasExplicitPlanHeader = true; continue; }
+    if (premiumKeywords.some(k => lc.includes(k))) { currentSection = 'premium'; hasExplicitPremiumHeader = true; continue; }
 
-    // Try key-value extraction
+    // Try key-value extraction（渠道经营/活动赋能等走专用字段）
     const kv = extractKV(line);
     if (kv) {
-      // Map to field
       const field = mapToField(kv.key);
       if (field) {
         result[field] = kv.value;
@@ -1089,10 +1091,21 @@ function parsePasteText(raw, personIdx) {
     else restLines.push(line);
   }
 
-  // Assign accumulated lines
-  if (workLines.length && !result.work) result.work = workLines.join('\n');
-  if (planLines.length && !result.plan) result.plan = planLines.join('\n');
-  if (premiumLines.length && !result.premium) result.premium = premiumLines.join('\n');
+  // 只写入含渠道经营关键词的行到「今日工作内容」
+  if (workLines.length && !result.work && hasExplicitWorkHeader) {
+    var channelRelated = [];
+    var channelKW = ['驻点','拜访','沟通','洽谈','跟进','陪访','邀约','沙龙','宣导','推动','辅导','培训','检视','追踪','会议','晨会','夕会','总结','复盘','启动','签约','承保','核保','理赔','渠道经营','经营','对接','维护','陌拜','拜访客户','电话','面谈'];
+    for (var wi = 0; wi < workLines.length; wi++) {
+      var wl = workLines[wi];
+      if (channelKW.some(function(k) { return wl.includes(k); })) {
+        channelRelated.push(wl);
+      }
+    }
+    if (channelRelated.length) result.work = channelRelated.join('\n');
+  }
+  // 同理：计划/保费只写明确标题下的
+  if (planLines.length && !result.plan && hasExplicitPlanHeader) result.plan = planLines.join('\n');
+  if (premiumLines.length && !result.premium && hasExplicitPremiumHeader) result.premium = premiumLines.join('\n');
 
   // Second pass: try to extract numbers from unstructured lines
   if (restLines.length) {
