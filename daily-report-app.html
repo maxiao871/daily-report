@@ -1044,136 +1044,163 @@ function loadFromLocalStorage() {
 }
 
 // ── Paste parser ─────────────────────────────────────────
+
 function parsePasteText(raw, personIdx) {
-  const text = raw.trim();
+  var text = (raw || '').trim();
   if (!text) return {};
+  var result = {};
+  var lines = text.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(Boolean);
+  var personName = personData[personIdx] ? (personData[personIdx].name || DEFAULT_NAMES[personIdx]) : DEFAULT_NAMES[personIdx];
 
-  const result = {};
-  const lines = text.split(/[\n\r]+/).map(l => l.trim()).filter(Boolean);
-
-  // Category buckets
-  let workLines = [];
-  let planLines = [];
-  let premiumLines = [];
-  let restLines = [];
-  let hasExplicitWorkHeader = false;
-  let hasExplicitPlanHeader = false;
-  let hasExplicitPremiumHeader = false;
-
-  // Keywords for routing（去掉泛词「工作」「今日」，只保留明确标题）
-  const workKeywords = ['今日工作', '工作内容', '今天工作'];
-  const planKeywords = ['明日工作计划', '明日计划', '明天计划', '明日工作', '明天工作'];
-  const premiumKeywords = ['保费预估', '明日保费', '预估保费'];
-
-  let currentSection = null; // 不再默认 catch-all
-
-  for (const line of lines) {
-    // Detect section changes
-    const lc = line.toLowerCase().replace(/\s+/g, '');
-    if (workKeywords.some(k => lc.includes(k))) { currentSection = 'work'; hasExplicitWorkHeader = true; continue; }
-    if (planKeywords.some(k => lc.includes(k))) { currentSection = 'plan'; hasExplicitPlanHeader = true; continue; }
-    if (premiumKeywords.some(k => lc.includes(k))) { currentSection = 'premium'; hasExplicitPremiumHeader = true; continue; }
-
-    // Try key-value extraction（渠道经营/活动赋能等走专用字段）
-    const kv = extractKV(line);
-    if (kv) {
-      const field = mapToField(kv.key);
-      if (field) {
-        result[field] = kv.value;
-        continue;
+  // ── 步骤1：第一遍扫，匹配独立行关键字段 ──
+  for (var li = 0; li < lines.length; li++) {
+    var line = lines[li];
+    // 跳过明显的分段标题行（下一轮处理）
+    var cleaned = cleanLine(line);
+    var field = matchLineToField(cleaned);
+    if (field) {
+      var afterField = lines.slice(li + 1).join('\n');
+      var val = extractFieldValue(cleaned, field, afterField, lines, li);
+      if (val !== null && val !== undefined && val !== '') {
+        result[field] = val;
       }
     }
-
-    // Route remaining lines
-    if (currentSection === 'work') workLines.push(line);
-    else if (currentSection === 'plan') planLines.push(line);
-    else if (currentSection === 'premium') premiumLines.push(line);
-    else restLines.push(line);
   }
 
-  // 只写入含渠道经营关键词的行到「今日工作内容」
-  if (workLines.length && !result.work && hasExplicitWorkHeader) {
-    var channelRelated = [];
-    var channelKW = ['驻点','拜访','沟通','洽谈','跟进','陪访','邀约','沙龙','宣导','推动','辅导','培训','检视','追踪','会议','晨会','夕会','总结','复盘','启动','签约','承保','核保','理赔','渠道经营','经营','对接','维护','陌拜','拜访客户','电话','面谈'];
-    for (var wi = 0; wi < workLines.length; wi++) {
-      var wl = workLines[wi];
-      if (channelKW.some(function(k) { return wl.includes(k); })) {
-        channelRelated.push(wl);
-      }
+  // ── 步骤2：全文抽取数字 ──
+  var allText = lines.join('；');
+  var nums = extractNumbersFromText(allText);
+  for (var k in nums) {
+    if (nums.hasOwnProperty(k)) {
+      if (result[k] === undefined || result[k] === '') result[k] = nums[k];
     }
-    if (channelRelated.length) result.work = channelRelated.join('\n');
   }
-  // 同理：计划/保费只写明确标题下的
-  if (planLines.length && !result.plan && hasExplicitPlanHeader) result.plan = planLines.join('\n');
-  if (premiumLines.length && !result.premium && hasExplicitPremiumHeader) result.premium = premiumLines.join('\n');
 
-  // Second pass: try to extract numbers from unstructured lines
-  if (restLines.length) {
-    const extra = extractNumbersFromText(restLines.join('；'));
-    for (const [k, v] of Object.entries(extra)) {
-      if (result[k] === undefined || result[k] === '') result[k] = v;
-    }
+  // ── 步骤3：表现亮点 / 需改进 ──
+  if (result.excellent === undefined || result.excellent === '') {
+    result.excellent = findSectionContent(lines, ['表现亮点', '亮点']);
+  }
+  if (result.improve === undefined || result.improve === '') {
+    result.improve = findSectionContent(lines, ['需改进', '改进事项', '改进']);
   }
 
   return result;
 }
 
-function extractKV(line) {
-  // Match: "关键词" followed by optional colon "："、":"、"是" and then the value
-  const patterns = [
-    /^(.+?)[：:]\s*(.+)$/,
-    /^(.+?)\s*[是为]\s*(.+)$/,
+// 清洗一行：去掉冒号前缀和标点
+function cleanLine(line) {
+  return line.replace(/^[：:]\s*/, '').replace(/^[-\*·•]\s*/, '').trim();
+}
+
+// 匹配字段名 → 返回 field id
+function matchLineToField(line) {
+  var rules = [
+    // [字段id, 正则数组, 说明]
+    // 渠道经营
+    ['channelWork', [/^渠道经营/, /^渠道/, /^主要渠道/]],
+    // 活动赋能
+    ['activity', [/^活动赋能/, /^活动推动/, /^活动/]],
+    // 培训辅导
+    ['training', [/^培训辅导/, /^培训/]],
+    // 有效面谈人数
+    ['fansInterview', [/^有效面谈/, /^面谈人数/, /^面谈\s*[:：]/, /^面谈$/]],
+    // 计划书递送份数
+    ['fansPlan', [/^计划书/, /^递送份数/]],
+    // 新增粉丝人数
+    ['fansNew', [/^新增粉丝/, /^粉丝人数/]],
+    // 新增活粉
+    ['fansActive', [/^新增活粉/, /^活粉人数/]],
+    // 新增高P粉
+    ['fansHighP', [/^新增高[Pp]粉/, /^高[Pp]粉人数/, /^高[Pp]粉/]],
+    // 泰有鑫意 线上品宣
+    ['specialOnline', [/^泰有鑫意.*品宣/, /^线上品宣/, /^品宣篇数/, /^品宣\s*[:：]/, /^品宣$/]],
+    // 泰有鑫意 线下培训
+    ['specialTrain', [/^泰有鑫意.*培训/, /^线下培训/]],
+    // 泰有鑫意 线下活动
+    ['specialAct', [/^泰有鑫意.*活动/, /^线下活动/]],
+    // 今日工作
+    ['work', [/^今日工作/, /^工作内容/, /^今天工作/, /^今日主要工作/]],
+    // 明日工作计划
+    ['plan', [/^明日工作/, /^明天工作/, /^明日计划/, /^明天计划/]],
+    // 明日保费预估
+    ['premium', [/^保费预估/, /^明日保费/, /^预估保费/]],
+    // 表现亮点
+    ['excellent', [/^表现亮点/, /^亮点/]],
+    // 需改进
+    ['improve', [/^需改进/, /^改进事项/, /^改进/]],
   ];
-  for (const re of patterns) {
-    const m = line.match(re);
-    if (m) return { key: m[1].trim(), value: m[2].trim() };
+
+  for (var ri = 0; ri < rules.length; ri++) {
+    var fieldId = rules[ri][0];
+    var patterns = rules[ri][1];
+    for (var pi = 0; pi < patterns.length; pi++) {
+      if (patterns[pi].test(line)) return fieldId;
+    }
   }
   return null;
 }
 
-function mapToField(key) {
-  const k = key.replace(/\s+/g, '').toLowerCase();
-  const map = {
-    '渠道经营': 'channelWork', '渠道': 'channelWork',
-    '活动赋能': 'activity', '活动': 'activity',
-    '培训辅导': 'training', '培训': 'training',
-    '有效面谈人数': 'fansInterview', '有效面谈': 'fansInterview', '面谈人数': 'fansInterview', '面谈': 'fansInterview',
-    '计划书递送份数': 'fansPlan', '计划书': 'fansPlan', '计划书份数': 'fansPlan',
-    '新增粉丝人数': 'fansNew', '新增粉丝': 'fansNew', '粉丝人数': 'fansNew',
-    '新增活粉人数': 'fansActive', '新增活粉': 'fansActive', '活粉人数': 'fansActive',
-    '新增高p粉人数': 'fansHighP', '新增高p粉': 'fansHighP', '高p粉人数': 'fansHighP', '高p粉': 'fansHighP',
-    '线上品宣': 'specialOnline', '品宣篇数': 'specialOnline', '线上品宣篇数': 'specialOnline', '品宣': 'specialOnline',
-    '线下培训': 'specialTrain', '培训场数': 'specialTrain',
-    '线下活动': 'specialAct', '活动场数': 'specialAct',
-    '表现亮点': 'excellent', '亮点': 'excellent',
-    '需改进': 'improve', '改进': 'improve', '改进事项': 'improve',
-  };
-  return map[k] || null;
+// 从匹配行提取值
+function extractFieldValue(line, fieldId, afterText, allLines, lineIdx) {
+  // 特殊处理：数字字段 —  取当前行里紧跟字段名后的数字
+  var numberFields = ['fansInterview','fansPlan','fansNew','fansActive','fansHighP','specialOnline','specialTrain','specialAct'];
+  if (numberFields.indexOf(fieldId) >= 0) {
+    var num = line.match(/(\d+(?:\.\d+)?)/);
+    if (num) return num[1];
+    // 当前行没有数字 → 找下一行的数字
+    if (lineIdx + 1 < allLines.length) {
+      var nextNum = allLines[lineIdx + 1].match(/(\d+(?:\.\d+)?)/);
+      if (nextNum) return nextNum[1];
+    }
+    return null;
+  }
+
+  // 文本字段
+  if (fieldId === 'work' || fieldId === 'plan' || fieldId === 'premium') {
+    // 取当前行之下的所有内容直到下一个字段标题
+    var sectionLines = [];
+    for (var si = lineIdx + 1; si < allLines.length; si++) {
+      var sl = cleanLine(allLines[si]);
+      var sf = matchLineToField(sl);
+      if (sf) break; // 遇到下一个字段就停
+      if (sl) sectionLines.push(sl);
+    }
+    if (sectionLines.length) return sectionLines.join('\n');
+    return null;
+  }
+
+  // 普通文本字段（channelWork / activity / training / excellent / improve）
+  // 取": "之后的内容，或下一行
+  var colonIdx = line.search(/[：:]\s*/);
+  if (colonIdx >= 0) {
+    var afterColon = line.slice(colonIdx).replace(/^[：:]\s*/, '').trim();
+    if (afterColon) return afterColon;
+  }
+  // 取下一行
+  if (lineIdx + 1 < allLines.length) {
+    var next = cleanLine(allLines[lineIdx + 1]);
+    if (next && !matchLineToField(next)) return next;
+  }
+  return null;
 }
 
-function extractNumbersFromText(text) {
-  const result = {};
-  // Extract numbers with context
-  const patterns = [
-    { re: /有效面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
-    { re: /面谈[^0-9]*(\d+)\s*人/i, field: 'fansInterview' },
-    { re: /计划书[^0-9]*(\d+)\s*[份人]/i, field: 'fansPlan' },
-    { re: /新增粉丝[^0-9]*(\d+)\s*人/i, field: 'fansNew' },
-    { re: /新增活粉[^0-9]*(\d+)\s*人/i, field: 'fansActive' },
-    { re: /高P粉[^0-9]*(\d+)\s*人/i, field: 'fansHighP' },
-    { re: /线上品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
-    { re: /线下培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
-    { re: /线下活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
-    { re: /品宣[^0-9]*(\d+)\s*篇/i, field: 'specialOnline' },
-    { re: /培训[^0-9]*(\d+)\s*场/i, field: 'specialTrain' },
-    { re: /活动[^0-9]*(\d+)\s*场/i, field: 'specialAct' },
-  ];
-  for (const { re, field } of patterns) {
-    const m = text.match(re);
-    if (m) result[field] = m[1];
+// 在行数组中查找指定标题下的内容
+function findSectionContent(lines, titles) {
+  for (var i = 0; i < lines.length; i++) {
+    var cl = cleanLine(lines[i]);
+    if (titles.some(function(t){ return cl.indexOf(t) >= 0; })) {
+      var parts = [];
+      for (var j = i + 1; j < lines.length; j++) {
+        var nl = cleanLine(lines[j]);
+        if (matchLineToField(nl)) break;
+        if (nl) parts.push(nl);
+      }
+      return parts.join('；');
+    }
   }
-  return result;
+  return null;
 }
+
 
 // Fill person form fields from parsed data
 function fillPersonFromData(personIdx, data) {
