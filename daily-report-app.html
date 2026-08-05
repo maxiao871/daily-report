@@ -1045,47 +1045,88 @@ function loadFromLocalStorage() {
 
 // ── Paste parser ─────────────────────────────────────────
 
+
+
 function parsePasteText(raw, personIdx) {
   var text = (raw || '').trim();
   if (!text) return {};
   var result = {};
   var lines = text.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(Boolean);
-  var personName = personData[personIdx] ? (personData[personIdx].name || DEFAULT_NAMES[personIdx]) : DEFAULT_NAMES[personIdx];
 
-  // ── 步骤1：第一遍扫，匹配独立行关键字段 ──
+  // 多行文本字段 → 字段id
+  var multiFields = {
+    channelWork: ['渠道经营','渠道推动'],
+    activity: ['活动赋能','活动推动'],
+    training: ['培训辅导'],
+    work: ['今日主要工作汇报','今日主要工作','今日工作汇报','今日工作内容','今日工作','今天工作','工作内容'],
+    plan: ['明日工作规划','明日工作计划','明日计划','明日工作','明天计划','明天工作'],
+    premium: ['明日预估保费','明日保费预估','保费预估','预估保费'],
+    excellent: ['表现亮点','亮点'],
+    improve: ['需改进事项','需改进','改进事项'],
+  };
+  // 已知标题（只是用于截断，不存值）
+  var breakKeywords = ['粉丝经营','粉丝'];
+
+  // 清洗：去掉数字编号前缀、方括号、冒号、空格
+  function stripPrefix(line) {
+    var s = (line || '');
+    // 去掉开头的【】包裹
+    s = s.replace(/^[【\[]([^】\]]+)[】\]]/, '$1');
+    // 去掉开头的数字+点/顿号
+    s = s.replace(/^\s*[\d一二三四五六七八九十]+[.．、)）]\s*/, '');
+    // 去掉开头冒号/逗号/空格
+    s = s.replace(/^[：:、\s]*/, '');
+    return s.trim();
+  }
+  function matchMulti(line) {
+    var s = stripPrefix(line);
+    for (var f in multiFields) {
+      var keys = multiFields[f];
+      for (var ki = 0; ki < keys.length; ki++) {
+        if (s === keys[ki] || s.indexOf(keys[ki]) >= 0) return f;
+      }
+    }
+    return null;
+  }
+  function isKnownTitle(line) {
+    return matchMulti(line) !== null || breakKeywords.some(function(k){ return stripPrefix(line).indexOf(k) >= 0; });
+  }
+
   for (var li = 0; li < lines.length; li++) {
-    var line = lines[li];
-    // 跳过明显的分段标题行（下一轮处理）
-    var cleaned = cleanLine(line);
-    var field = matchLineToField(cleaned);
+    var cleaned = stripPrefix(lines[li]);
+    var field = matchMulti(cleaned);
+
     if (field) {
-      var afterField = lines.slice(li + 1).join('\n');
-      var val = extractFieldValue(cleaned, field, afterField, lines, li);
-      if (val !== null && val !== undefined && val !== '') {
-        result[field] = val;
+      var sectionLines = [];
+      // 同行冒号后的内容
+      var sameLine = lines[li];
+      var colonIdx = sameLine.search(/[：:]/);
+      if (colonIdx >= 0) {
+        var afterColon = sameLine.slice(colonIdx + 1).trim();
+        if (afterColon && !isKnownTitle(afterColon)) sectionLines.push(afterColon);
+      }
+      for (var si = li + 1; si < lines.length; si++) {
+        if (isKnownTitle(lines[si])) break;
+        var sl = stripPrefix(lines[si]);
+        if (sl) sectionLines.push(sl);
+      }
+      if (sectionLines.length && (result[field] === undefined || result[field] === '')) {
+        result[field] = sectionLines.join('\n');
       }
     }
   }
 
-  // ── 步骤2：全文抽取数字 ──
+  // 全文数字抽取（兜底）
   var allText = lines.join('；');
   var nums = extractNumbersFromText(allText);
   for (var k in nums) {
-    if (nums.hasOwnProperty(k)) {
-      if (result[k] === undefined || result[k] === '') result[k] = nums[k];
-    }
-  }
-
-  // ── 步骤3：表现亮点 / 需改进 ──
-  if (result.excellent === undefined || result.excellent === '') {
-    result.excellent = findSectionContent(lines, ['表现亮点', '亮点']);
-  }
-  if (result.improve === undefined || result.improve === '') {
-    result.improve = findSectionContent(lines, ['需改进', '改进事项', '改进']);
+    if (nums.hasOwnProperty(k)) if (result[k] === undefined || result[k] === '') result[k] = nums[k];
   }
 
   return result;
 }
+
+
 
 // 清洗一行：去掉冒号前缀和标点
 function cleanLine(line) {
@@ -1093,52 +1134,58 @@ function cleanLine(line) {
 }
 
 // 匹配字段名 → 返回 field id
+
 function matchLineToField(line) {
+  // 1. 去掉前导编号、空格、标点
+  var s = (line || '').replace(/^\s*[\d一二三四五六七八九十]+[.．、)）]?\s*/, '').replace(/^[：:、\s]*/, '').trim();
+
+  // 2. 字段映射表：[字段id, 关键字数组]（匹配取第一个）
   var rules = [
-    // [字段id, 正则数组, 说明]
     // 渠道经营
-    ['channelWork', [/^渠道经营/, /^渠道/, /^主要渠道/]],
+    ['channelWork', ['渠道经营','渠道推动']],
     // 活动赋能
-    ['activity', [/^活动赋能/, /^活动推动/, /^活动/]],
+    ['activity', ['活动赋能','活动推动','活动']],
     // 培训辅导
-    ['training', [/^培训辅导/, /^培训/]],
+    ['training', ['培训辅导','辅导']],
     // 有效面谈人数
-    ['fansInterview', [/^有效面谈/, /^面谈人数/, /^面谈\s*[:：]/, /^面谈$/]],
+    ['fansInterview', ['有效面谈人数','有效面谈','面谈人数']],
     // 计划书递送份数
-    ['fansPlan', [/^计划书/, /^递送份数/]],
+    ['fansPlan', ['计划书递送份数','计划书递送','递送份数','计划书']],
     // 新增粉丝人数
-    ['fansNew', [/^新增粉丝/, /^粉丝人数/]],
+    ['fansNew', ['新增粉丝人数','新增粉丝','粉丝人数']],
     // 新增活粉
-    ['fansActive', [/^新增活粉/, /^活粉人数/]],
+    ['fansActive', ['新增活粉人数','新增活粉','活粉人数']],
     // 新增高P粉
-    ['fansHighP', [/^新增高[Pp]粉/, /^高[Pp]粉人数/, /^高[Pp]粉/]],
+    ['fansHighP', ['新增高P粉人数','新增高p粉人数','新增高P粉','新增高p粉','高P粉人数','高p粉人数']],
     // 泰有鑫意 线上品宣
-    ['specialOnline', [/^泰有鑫意.*品宣/, /^线上品宣/, /^品宣篇数/, /^品宣\s*[:：]/, /^品宣$/]],
+    ['specialOnline', ['线上品宣篇数','线上品宣','品宣篇数','线上篇数']],
     // 泰有鑫意 线下培训
-    ['specialTrain', [/^泰有鑫意.*培训/, /^线下培训/]],
+    ['specialTrain', ['线下培训场数','线下培训']],
     // 泰有鑫意 线下活动
-    ['specialAct', [/^泰有鑫意.*活动/, /^线下活动/]],
-    // 今日工作
-    ['work', [/^今日工作/, /^工作内容/, /^今天工作/, /^今日主要工作/]],
+    ['specialAct', ['线下活动场数','线下活动']],
+    // 今日工作（兼容「今日主要工作」「今日工作汇报」）
+    ['work', ['今日主要工作汇报','今日主要工作','今日工作汇报','今日工作内容','今日工作','今天工作','工作内容']],
     // 明日工作计划
-    ['plan', [/^明日工作/, /^明天工作/, /^明日计划/, /^明天计划/]],
+    ['plan', ['明日工作规划','明日工作计划','明日计划','明日工作','明天计划','明天工作']],
     // 明日保费预估
-    ['premium', [/^保费预估/, /^明日保费/, /^预估保费/]],
+    ['premium', ['明日预估保费','明日保费预估','保费预估','预估保费']],
     // 表现亮点
-    ['excellent', [/^表现亮点/, /^亮点/]],
+    ['excellent', ['表现亮点','亮点']],
     // 需改进
-    ['improve', [/^需改进/, /^改进事项/, /^改进/]],
+    ['improve', ['需改进事项','需改进','改进事项']],
   ];
 
   for (var ri = 0; ri < rules.length; ri++) {
     var fieldId = rules[ri][0];
-    var patterns = rules[ri][1];
-    for (var pi = 0; pi < patterns.length; pi++) {
-      if (patterns[pi].test(line)) return fieldId;
+    var keys = rules[ri][1];
+    for (var ki = 0; ki < keys.length; ki++) {
+      // 用 startsWith 避免「1.活动赋能」误匹配「活动」（关键字未在开头）
+      if (s === keys[ki] || s.startsWith(keys[ki])) return fieldId;
     }
   }
   return null;
 }
+
 
 // 从匹配行提取值
 function extractFieldValue(line, fieldId, afterText, allLines, lineIdx) {
@@ -1205,20 +1252,26 @@ function findSectionContent(lines, titles) {
 // 从自由文本中按数字模式提取字段值
 function extractNumbersFromText(text) {
   var result = {};
+  // 每个字段按多条正则匹配，提升鲁棒性（去掉单位要求，但保留可选单位）
   var patterns = [
-    { re: /有效面谈[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansInterview' },
-    { re: /面谈[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansInterview' },
-    { re: /计划书[^0-9]*(\d+(?:\.\d+)?)\s*[份人]/i, field: 'fansPlan' },
-    { re: /新增粉丝[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansNew' },
-    { re: /新增活粉[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansActive' },
-    { re: /高P粉[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansHighP' },
-    { re: /线上品宣[^0-9]*(\d+(?:\.\d+)?)\s*篇/i, field: 'specialOnline' },
-    { re: /线下培训[^0-9]*(\d+(?:\.\d+)?)\s*场/i, field: 'specialTrain' },
-    { re: /线下活动[^0-9]*(\d+(?:\.\d+)?)\s*场/i, field: 'specialAct' },
+    { re: /有效面谈\s*人数\s*(\d+(?:\.\d+)?)/i, field: 'fansInterview' },
+    { re: /有效面谈[^0-9]*(\d+(?:\.\d+)?)/i, field: 'fansInterview' },
+    { re: /面谈\s*人数\s*(\d+(?:\.\d+)?)/i, field: 'fansInterview' },
+    { re: /计划书\s*递送\s*份数\s*(\d+(?:\.\d+)?)/i, field: 'fansPlan' },
+    { re: /计划书[^0-9]*(\d+(?:\.\d+)?)/i, field: 'fansPlan' },
+    { re: /新增粉丝\s*人数\s*(\d+(?:\.\d+)?)/i, field: 'fansNew' },
+    { re: /新增粉丝[^0-9]*(\d+(?:\.\d+)?)/i, field: 'fansNew' },
+    { re: /新增活粉\s*人数\s*(\d+(?:\.\d+)?)/i, field: 'fansActive' },
+    { re: /新增活粉[^0-9]*(\d+(?:\.\d+)?)/i, field: 'fansActive' },
+    { re: /新增高[Pp]粉\s*人数\s*(\d+(?:\.\d+)?)/i, field: 'fansHighP' },
+    { re: /新增高[Pp]粉[^0-9]*(\d+(?:\.\d+)?)/i, field: 'fansHighP' },
+    { re: /线上\s*品宣[^0-9]*(\d+(?:\.\d+)?)/i, field: 'specialOnline' },
+    { re: /线下培训[^0-9]*(\d+(?:\.\d+)?)/i, field: 'specialTrain' },
+    { re: /线下活动[^0-9]*(\d+(?:\.\d+)?)/i, field: 'specialAct' },
   ];
   for (var pi = 0; pi < patterns.length; pi++) {
     var m = text.match(patterns[pi].re);
-    if (m) result[patterns[pi].field] = m[1];
+    if (m && result[patterns[pi].field] === undefined) result[patterns[pi].field] = m[1];
   }
   return result;
 }
