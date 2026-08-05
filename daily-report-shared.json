@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "savedAt": "2026-08-05T09:28:52.546Z",
+  "savedAt": "2026-08-05T09:28:53.810Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "",
@@ -48,12 +48,12 @@
       "channelWork": "",
       "activity": "",
       "training": "",
-      "fansInterview": "",
+      "fansInterview": "7",
       "fansPlan": "",
       "fansNew": "",
       "specialOnline": "",
-      "specialTrain": "",
-      "specialAct": "",
+      "specialTrain": "0",
+      "specialAct": "0",
       "excellent": "",
       "improve": "",
       "plan": "",
