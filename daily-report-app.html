@@ -1202,6 +1202,27 @@ function findSectionContent(lines, titles) {
 }
 
 
+// 从自由文本中按数字模式提取字段值
+function extractNumbersFromText(text) {
+  var result = {};
+  var patterns = [
+    { re: /有效面谈[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansInterview' },
+    { re: /面谈[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansInterview' },
+    { re: /计划书[^0-9]*(\d+(?:\.\d+)?)\s*[份人]/i, field: 'fansPlan' },
+    { re: /新增粉丝[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansNew' },
+    { re: /新增活粉[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansActive' },
+    { re: /高P粉[^0-9]*(\d+(?:\.\d+)?)\s*人/i, field: 'fansHighP' },
+    { re: /线上品宣[^0-9]*(\d+(?:\.\d+)?)\s*篇/i, field: 'specialOnline' },
+    { re: /线下培训[^0-9]*(\d+(?:\.\d+)?)\s*场/i, field: 'specialTrain' },
+    { re: /线下活动[^0-9]*(\d+(?:\.\d+)?)\s*场/i, field: 'specialAct' },
+  ];
+  for (var pi = 0; pi < patterns.length; pi++) {
+    var m = text.match(patterns[pi].re);
+    if (m) result[patterns[pi].field] = m[1];
+  }
+  return result;
+}
+
 // Fill person form fields from parsed data
 function fillPersonFromData(personIdx, data) {
   const card = $$(".person-card")[personIdx];
