@@ -983,6 +983,7 @@ function autoSave() {
   saveSnapshot();                 // Update snapshot for auto-calc
   scheduleFileWrite();            // Debounced file write
   refreshCalcBar();               // Refresh calc display
+  if (getCloudToken()) flushCloud(); // 自动触发云同步
 }
 
 // Also trigger flash periodically (every 30s if there's activity)
