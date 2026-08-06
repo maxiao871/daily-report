@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "savedAt": "2026-08-06T06:22:06.940Z",
+  "savedAt": "2026-08-06T06:22:08.039Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "2026-08-06",
@@ -15,7 +15,7 @@
     "channelCount": "",
     "specialTarget": "14",
     "specialMonth": "0",
-    "specialToday": "",
+    "specialToday": "0",
     "onlineMonth": "",
     "offlineTrainingMonth": "",
     "offlineActivityMonth": "",
