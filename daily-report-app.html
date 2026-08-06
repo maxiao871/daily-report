@@ -1047,34 +1047,34 @@ function loadFromLocalStorage() {
 
 
 
+
+
 function parsePasteText(raw, personIdx) {
   var text = (raw || '').trim();
   if (!text) return {};
   var result = {};
   var lines = text.split(/[\n\r]+/).map(function(l){return l.trim();}).filter(Boolean);
 
-  // 多行文本字段 → 字段id
+  // 哪些标题属于"渠道经营/活动/培训"——它们下面的内容会归到「今日工作内容」字段
+  var workSectionKeys = ['渠道经营','渠道推动','活动赋能','活动推动','活动','培训辅导','辅导'];
+  // 多行字段
   var multiFields = {
-    channelWork: ['渠道经营','渠道推动'],
-    activity: ['活动赋能','活动推动'],
-    training: ['培训辅导'],
     work: ['今日主要工作汇报','今日主要工作','今日工作汇报','今日工作内容','今日工作','今天工作','工作内容'],
     plan: ['明日工作规划','明日工作计划','明日计划','明日工作','明天计划','明天工作'],
     premium: ['明日预估保费','明日保费预估','保费预估','预估保费'],
     excellent: ['表现亮点','亮点'],
     improve: ['需改进事项','需改进','改进事项'],
+    channelWork: ['渠道经营','渠道推动'],
+    activity: ['活动赋能','活动推动'],
+    training: ['培训辅导'],
   };
-  // 已知标题（只是用于截断，不存值）
+  // 截断标题（只截断，不存值）
   var breakKeywords = ['粉丝经营','粉丝'];
 
-  // 清洗：去掉数字编号前缀、方括号、冒号、空格
   function stripPrefix(line) {
     var s = (line || '');
-    // 去掉开头的【】包裹
     s = s.replace(/^[【\[]([^】\]]+)[】\]]/, '$1');
-    // 去掉开头的数字+点/顿号
     s = s.replace(/^\s*[\d一二三四五六七八九十]+[.．、)）]\s*/, '');
-    // 去掉开头冒号/逗号/空格
     s = s.replace(/^[：:、\s]*/, '');
     return s.trim();
   }
@@ -1088,32 +1088,64 @@ function parsePasteText(raw, personIdx) {
     }
     return null;
   }
+  function isWorkSection(line) {
+    var s = stripPrefix(line);
+    // 去掉冒号再判
+    s = s.replace(/[：:]$/, '');
+    return workSectionKeys.some(function(k){ return s === k || s.indexOf(k) === 0; });
+  }
   function isKnownTitle(line) {
     return matchMulti(line) !== null || breakKeywords.some(function(k){ return stripPrefix(line).indexOf(k) >= 0; });
   }
 
+  // 收集渠道经营/活动赋能/培训辅导下的工作内容到 work
+  var workLines = [];
   for (var li = 0; li < lines.length; li++) {
-    var cleaned = stripPrefix(lines[li]);
-    var field = matchMulti(cleaned);
-
-    if (field) {
-      var sectionLines = [];
-      // 同行冒号后的内容
+    if (isWorkSection(lines[li])) {
       var sameLine = lines[li];
       var colonIdx = sameLine.search(/[：:]/);
       if (colonIdx >= 0) {
-        var afterColon = sameLine.slice(colonIdx + 1).trim();
-        if (afterColon && !isKnownTitle(afterColon)) sectionLines.push(afterColon);
+        var after = sameLine.slice(colonIdx + 1).trim();
+        if (after) workLines.push(after);
       }
       for (var si = li + 1; si < lines.length; si++) {
         if (isKnownTitle(lines[si])) break;
         var sl = stripPrefix(lines[si]);
-        if (sl) sectionLines.push(sl);
-      }
-      if (sectionLines.length && (result[field] === undefined || result[field] === '')) {
-        result[field] = sectionLines.join('\n');
+        if (sl) workLines.push(sl);
       }
     }
+  }
+
+  // work 字段优先级：先填渠道经营/活动/培训下的内容；如有"今日工作"标题则覆盖
+  if (workLines.length) result.work = workLines.join('\n');
+
+  // 处理其他多行字段
+  for (var li2 = 0; li2 < lines.length; li2++) {
+    var cleaned = stripPrefix(lines[li2]);
+    var field = matchMulti(cleaned);
+    if (!field) continue;
+    if (workSectionKeys.some(function(k){ return cleaned.indexOf(k) >= 0; })) continue; // 已处理
+    var sectionLines = [];
+    var sameLine2 = lines[li2];
+    var colonIdx2 = sameLine2.search(/[：:]/);
+    if (colonIdx2 >= 0) {
+      var afterColon2 = sameLine2.slice(colonIdx2 + 1).trim();
+      if (afterColon2 && !isKnownTitle(afterColon2)) sectionLines.push(afterColon2);
+    }
+    for (var si2 = li2 + 1; si2 < lines.length; si2++) {
+      if (isKnownTitle(lines[si2])) break;
+      var sl2 = stripPrefix(lines[si2]);
+      if (sl2) sectionLines.push(sl2);
+    }
+    if (sectionLines.length && (result[field] === undefined || result[field] === '')) {
+      result[field] = sectionLines.join('\n');
+    }
+  }
+
+  // channelWork 字段：抽取渠道名（按出现顺序拼接）
+  if (result.channelWork === undefined || result.channelWork === '') {
+    var ch = extractChannelNames(text);
+    if (ch) result.channelWork = ch;
   }
 
   // 全文数字抽取（兜底）
@@ -1125,6 +1157,8 @@ function parsePasteText(raw, personIdx) {
 
   return result;
 }
+
+
 
 
 
@@ -1274,6 +1308,21 @@ function extractNumbersFromText(text) {
     if (m && result[patterns[pi].field] === undefined) result[patterns[pi].field] = m[1];
   }
   return result;
+}
+
+
+// 从全文中抽取渠道名（去重、按出现顺序）
+function extractChannelNames(text) {
+  var known = ['明亚','盛唐','鑫山','恒邦','大童','年丰','佳泰','慧择','永达理','嘉诚','保通','鑫路鸿','明鑫','宝瑞','黎明','隽天','京东','华康','泛华','泰有鑫意','明保通','泰保通'];
+  var found = [];
+  var seen = {};
+  // 按长度倒序（长名字先匹配，避免「明亚」吃掉「明鑫」）
+  var sorted = known.slice().sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < sorted.length; i++) {
+    var k = sorted[i];
+    if (text.indexOf(k) >= 0 && !seen[k]) { found.push(k); seen[k] = true; }
+  }
+  return found.length ? found.join('、') : null;
 }
 
 // Fill person form fields from parsed data
