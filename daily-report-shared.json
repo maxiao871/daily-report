@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "savedAt": "2026-08-06T06:23:49.004Z",
+  "savedAt": "2026-08-06T06:23:50.183Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "2026-08-06",
@@ -8,7 +8,7 @@
     "todayPresale": "0",
     "todayUnderwrite": "0",
     "monthPresale": "14.7",
-    "monthUnderwrite": "1",
+    "monthUnderwrite": "16",
     "monthTarget": "140",
     "tomorrowEstimate": "",
     "activityPeople": "70/5",
