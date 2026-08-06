@@ -1735,11 +1735,19 @@ function merge(people) {
 // ── render report ───────────────────────────────────────
 // Tab 0: 大区汇总
 function renderRegionReport(s, people, m) {
-  const dateCode = fmtDateCode(s.date);
+  const dateCode = fmtDate(s.date); // 改为 fmtDate 保留 8.06 格式
   const ml = s.monthLabel;
   const completion = s.monthTarget ? `${Math.round(s.monthUnderwrite/s.monthTarget*100)}%` : "0%";
-  const workItems = unique(m.work);
-  const planItems = unique(m.plan);
+  
+  // 渠道名单用于过滤
+  const channelNames = ['明亚','盛唐','鑫山','恒邦','大童','年丰','佳泰','慧择','永达理','嘉诚','保通','鑫路鸿','明鑫','宝瑞','黎明','隽天','京东','华康','泛华','泰有鑫意','明保通','泰保通'];
+  function containsChannel(line) {
+    if (!line) return false;
+    return channelNames.some(function(ch) { return line.indexOf(ch) >= 0; });
+  }
+  
+  const workItems = unique(m.work).filter(containsChannel); // 只保留含渠道名的行
+  const planItems = unique(m.plan).filter(containsChannel); // 只保留含渠道名的行
   const premiumItems = unique(m.premium);
   const workContent = workItems.length ? numberLines(workItems) : ["无"];
   const planContent = planItems.length ? numberLines(planItems) : ["无"];
