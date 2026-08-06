@@ -2200,11 +2200,19 @@ function buildCloudPayload() {
 // ─────────────────────────────────────────────────────
 async function saveToCloud(data, attempt) {
   var token = getCloudToken();
-  if (!token) return false;
+  if (!token) { showToast('🔑 未设置 Token', 'error'); return false; }
   if (!attempt && cloudSaving) { cloudPendingSave = true; return false; }
   cloudSaving = true;
   if (!attempt) attempt = 0;
   if (!data) data = buildCloudPayload();
+
+  // 如果 SHA 未知，先尝试获取
+  if (!cloudFileSHA) {
+    try {
+      var meta = await cloudAPI('GET', '/repos/maxiao871/daily-report/contents/' + CLOUD_FILE);
+      if (meta) { cloudFileSHA = meta.sha; cloudLastKnownSHA = meta.sha; }
+    } catch(e) {}
+  }
 
   try {
     var body = { message: 'auto-sync', content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))) };
@@ -2241,7 +2249,7 @@ async function saveToCloud(data, attempt) {
       await new Promise(function(r) { setTimeout(r, 1000); });
       return await saveToCloud(buildCloudPayload(), attempt + 1);
     }
-    console.warn('Cloud save failed: ' + e.message);
+    console.warn('Cloud save failed: ' + e.message); showToast('☁️ 同步失败: ' + e.message, 'error');
     return false;
   }
 }
