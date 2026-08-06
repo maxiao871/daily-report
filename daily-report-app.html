@@ -1138,11 +1138,12 @@ function parsePasteText(raw, personIdx) {
     }
   }
 
-  // channelWork 字段：抽取渠道名（按出现顺序拼接）
-  if (result.channelWork === undefined || result.channelWork === '') {
-    var ch = extractChannelNames(text);
+  // channelWork 字段：只从今日工作汇报「渠道经营」标题下的内容抽渠道名
+  if ((result.channelWork === undefined || result.channelWork === '') && result.work) {
+    var ch = extractChannelNames(result.work);
     if (ch) result.channelWork = ch;
   }
+
 
   // 全文数字抽取（兜底）
   var allText = lines.join('；');
