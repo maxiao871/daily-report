@@ -1096,20 +1096,27 @@ function parsePasteText(raw, personIdx) {
     return matchMulti(line) !== null || breakKeywords.some(function(k){ return stripPrefix(line).indexOf(k) >= 0; });
   }
 
-  // 收集渠道经营下的工作内容到 work
+  // 收集渠道经营下的内容到 work，同时单独保存 channelWorkLines 用于抽渠道名
   var workLines = [];
+  var channelWorkLines = []; // 专门用于抽渠道名（只含渠道经营标题下的行）
   for (var li = 0; li < lines.length; li++) {
     if (isWorkSection(lines[li])) {
       var sameLine = lines[li];
       var colonIdx = sameLine.search(/[：:]/);
+      var after = '';
       if (colonIdx >= 0) {
-        var after = sameLine.slice(colonIdx + 1).trim();
+        after = sameLine.slice(colonIdx + 1).trim();
         if (after) workLines.push(after);
       }
+      // 保存渠道经营下的行（用于抽渠道名）
+      if (after) channelWorkLines.push(after);
       for (var si = li + 1; si < lines.length; si++) {
         if (isKnownTitle(lines[si])) break;
         var sl = stripPrefix(lines[si]);
-        if (sl) workLines.push(sl);
+        if (sl) {
+          workLines.push(sl);
+          channelWorkLines.push(sl); // 只保存渠道经营下的行
+        }
       }
     }
   }
@@ -1138,12 +1145,12 @@ function parsePasteText(raw, personIdx) {
     }
   }
 
-  // channelWork 字段：只从今日工作汇报「渠道经营」标题下的内容抽渠道名
-  if ((result.channelWork === undefined || result.channelWork === '') && result.work) {
-    var ch = extractChannelNames(result.work);
+  // channelWork 字段：只从渠道经营标题下的内容中抽渠道名
+  if ((result.channelWork === undefined || result.channelWork === '') && channelWorkLines.length > 0) {
+    var chText = channelWorkLines.join('\n');
+    var ch = extractChannelNames(chText);
     if (ch) result.channelWork = ch;
   }
-
 
   // 全文数字抽取（兜底）
   var allText = lines.join('；');
@@ -1311,7 +1318,7 @@ function extractNumbersFromText(text) {
 
 // 从全文中抽取渠道名（去重、按出现顺序）
 function extractChannelNames(text) {
-  var known = ['明亚','盛唐','鑫山','恒邦','大童','年丰','佳泰','慧择','永达理','嘉诚','保通','鑫路鸿','明鑫','宝瑞','黎明','隽天','京东','华康','泛华','泰有鑫意','明保通','泰保通'];
+  var known = ['明亚','盛唐','鑫山','恒邦','大童','太平','年丰','佳泰','慧择','永达理','嘉诚','保通','鑫路鸿','明鑫','宝瑞','黎明','隽天','京东','华康','泛华']; // 移除泰有鑫意/明保通/泰保通，添加太平
   var found = [];
   var seen = {};
   // 按长度倒序（长名字先匹配，避免「明亚」吃掉「明鑫」）
