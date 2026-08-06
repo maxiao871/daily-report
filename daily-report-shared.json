@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "savedAt": "2026-08-06T06:26:56.366Z",
+  "savedAt": "2026-08-06T06:26:59.499Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "2026-08-06",
@@ -18,7 +18,7 @@
     "specialToday": "0",
     "onlineMonth": "",
     "offlineTrainingMonth": "2",
-    "offlineActivityMonth": "",
+    "offlineActivityMonth": "0",
     "todayActiveFans": "",
     "todayHighPFans": "",
     "monthActiveFans": "5",
