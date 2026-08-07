@@ -1,13 +1,13 @@
 {
   "version": 3,
-  "savedAt": "2026-08-07T12:17:53.011Z",
+  "savedAt": "2026-08-07T12:17:56.754Z",
   "savedBy": "钟华",
   "summary": {
     "reportDate": "2026-08-07",
     "monthLabel": "8月",
     "todayPresale": "0.7",
     "todayUnderwrite": "0.7",
-    "monthPresale": "14.7",
+    "monthPresale": "1",
     "monthUnderwrite": "16.5",
     "monthTarget": "140",
     "tomorrowEstimate": "3",
