@@ -1643,10 +1643,10 @@ function refreshCalcBar() {
     var allChannels = [];
     var seenCh = {};
     for (var pi = 0; pi < 4; pi++) {
+      // Prefer DOM value; fall back to data model
       var el = document.getElementById('p' + pi + '_channelWork');
-      if (!el) { continue; }
-      var text = el.value || '';
-      var names = extractChannelNames(text);
+      var text = (el && el.value) ? el.value : ((typeof personData !== 'undefined' && personData[pi] && personData[pi].channelWork) ? personData[pi].channelWork : '');
+      var names = extractChannelNames(text || '');
       if (names) {
         names.split('、').forEach(function(ch) {
           if (ch && !seenCh[ch]) { seenCh[ch] = true; allChannels.push(ch); }
@@ -1655,7 +1655,7 @@ function refreshCalcBar() {
     }
     var $chVisit = document.getElementById('channelVisit');
     if ($chVisit) {
-      var newVal = allChannels.length > 0 ? allChannels.length : '';
+      var newVal = allChannels.length > 0 ? String(allChannels.length) : '';
       if ($chVisit.value !== newVal) $chVisit.value = newVal;
     }
     var $status = document.getElementById('debugChStatus');
@@ -1663,7 +1663,7 @@ function refreshCalcBar() {
   } catch(e) {
     console.error('channelVisit calc error:', e);
     var $status2 = document.getElementById('debugChStatus');
-    if ($status2) $status2.textContent = '错误:' + e.message;
+    if ($status2) $status2.textContent = '错误:' + (e && e.message ? e.message : e);
   }
   } catch(e2) {
     console.error('refreshCalcBar error:', e2);
@@ -1867,6 +1867,10 @@ function renderActionReport(s, people, m) {
 // ── generator ───────────────────────────────────────────
 // Render all tabs and store results in data-reports attribute on #result
 function generate() {
+  try {
+    // ensure derived fields are fresh before generating
+    try { refreshCalcBar(); } catch(_) {}
+
   const s = getSummary();
   const people = getPeople().filter(p => p.work.length || p.plan.length || p.premium.length || p.excellent || p.improve);
   const m = merge(people);
@@ -1879,7 +1883,13 @@ function generate() {
   // Show active tab
   const activeTab = parseInt($$('.result-tab.active', $('#resultTabs'))[0].getAttribute('data-tab') || '0');
   $('#result').value = [tab0, tab1, tab2][activeTab];
-  autoSave();
+    autoSave();
+  } catch(err) {
+    console.error('generate() error:', err);
+    var re = document.getElementById('result');
+    if (re) re.value = '生成汇报出错：' + (err && err.message ? err.message : err) + '\n\n请按F12打开控制台查看详情';
+    if (typeof showToast === 'function') showToast('生成汇报出错: ' + (err && err.message ? err.message : err), 'error');
+  }
 }
 
 // ── copy / download ─────────────────────────────────────
