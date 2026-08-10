@@ -636,6 +636,9 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
       <label>本月累计高P粉人数<input id="monthHighPFans" type="number" min="0" /></label>
     </div>
     <div class="calc-bar" id="calcBar">
+      <div class="calc-item" id="debugChannel" style="cursor:pointer;background:#fff3cd;padding:4px;" title="点击刷新计算" onclick="window.__recalc && window.__recalc()">
+        <span class="calc-label">🔄 重新计算</span>
+      </div>
       <div class="calc-item">
         <span class="calc-label">📈 月达成率</span>
         <span class="calc-value" id="calcMonthRate">--</span>
@@ -1582,6 +1585,7 @@ function saveSnapshot() {
   localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snap));
 }
 
+window.__recalc = refreshCalcBar;
 function refreshCalcBar() {
   const underwrite = n($('#monthUnderwrite').value);
   const target = n($('#monthTarget').value);
@@ -1659,6 +1663,11 @@ function attachCalcListeners() {
     var el = document.getElementById(id);
     if (el) el.addEventListener('input', refreshCalcBar);
   });
+  // Also bind to all person channelWork fields so channelVisit updates immediately
+  for (var pi2 = 0; pi2 < 4; pi2++) {
+    var pEl = document.getElementById('p' + pi2 + '_channelWork');
+    if (pEl) pEl.addEventListener('input', refreshCalcBar);
+  }
   refreshCalcBar();
 }
 
