@@ -1025,6 +1025,7 @@ function applyDataToForm(data) {
     }
   }
   if (data.result) $('#result').value = data.result;
+  try { refreshCalcBar(); } catch(e) {}
 }
 
 function syncToDOM() {
@@ -2531,6 +2532,7 @@ async function init() {
     syncToDOM();
   }
   syncToDOM();
+  try { refreshCalcBar(); } catch(e) { console.warn('refreshCalcBar:', e); }
   updateStatusBar();
   
   // Warn if cloud sync is not set up
