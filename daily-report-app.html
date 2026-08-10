@@ -1629,6 +1629,26 @@ function refreshCalcBar() {
   thpfEl.className = 'calc-value';
   const thpfInput = $('#todayHighPFans');
   if (!thpfInput.value && todayHPF > 0) thpfInput.value = todayHPF;
+  
+  // Auto-calculate channelVisit from 4 persons' channelWork (dedup)
+  var allChannels = [];
+  var seenCh = {};
+  for (var pi = 0; pi < 4; pi++) {
+    var el = document.getElementById('p' + pi + '_channelWork');
+    if (!el) continue;
+    var text = el.value || '';
+    var names = extractChannelNames(text);
+    if (names) {
+      names.split('、').forEach(function(ch) {
+        if (ch && !seenCh[ch]) { seenCh[ch] = true; allChannels.push(ch); }
+      });
+    }
+  }
+  var $chVisit = document.getElementById('channelVisit');
+  if ($chVisit) {
+    var newVal = allChannels.length > 0 ? allChannels.length : '';
+    if ($chVisit.value !== newVal) $chVisit.value = newVal;
+  }
 }
 
 function attachCalcListeners() {
