@@ -636,8 +636,9 @@ button.cloud-btn.active:hover { background: #1e8c4a; }
       <label>本月累计高P粉人数<input id="monthHighPFans" type="number" min="0" /></label>
     </div>
     <div class="calc-bar" id="calcBar">
-      <div class="calc-item" id="debugChannel" style="cursor:pointer;background:#fff3cd;padding:4px;" title="点击刷新计算" onclick="window.__recalc && window.__recalc()">
+      <div class="calc-item" id="debugChannel" style="cursor:pointer;background:#fff3cd;padding:4px;" title="点击刷新计算" onclick="refreshCalcBar(); document.getElementById('debugChStatus').textContent='已点击 '+new Date().toLocaleTimeString();">
         <span class="calc-label">🔄 重新计算</span>
+        <span class="calc-value" id="debugChStatus" style="font-size:11px;color:#666;"></span>
       </div>
       <div class="calc-item">
         <span class="calc-label">📈 月达成率</span>
@@ -1585,8 +1586,8 @@ function saveSnapshot() {
   localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(snap));
 }
 
-window.__recalc = refreshCalcBar;
 function refreshCalcBar() {
+  try {
   const underwrite = n($('#monthUnderwrite').value);
   const target = n($('#monthTarget').value);
   const monthRate = target > 0 ? Math.round(underwrite / target * 100) : 0;
@@ -1638,23 +1639,31 @@ function refreshCalcBar() {
   if (!thpfInput.value && todayHPF > 0) thpfInput.value = todayHPF;
   
   // Auto-calculate channelVisit from 4 persons' channelWork (dedup)
-  var allChannels = [];
-  var seenCh = {};
-  for (var pi = 0; pi < 4; pi++) {
-    var el = document.getElementById('p' + pi + '_channelWork');
-    if (!el) continue;
-    var text = el.value || '';
-    var names = extractChannelNames(text);
-    if (names) {
-      names.split('、').forEach(function(ch) {
-        if (ch && !seenCh[ch]) { seenCh[ch] = true; allChannels.push(ch); }
-      });
+  try {
+    var allChannels = [];
+    var seenCh = {};
+    for (var pi = 0; pi < 4; pi++) {
+      var el = document.getElementById('p' + pi + '_channelWork');
+      if (!el) { continue; }
+      var text = el.value || '';
+      var names = extractChannelNames(text);
+      if (names) {
+        names.split('、').forEach(function(ch) {
+          if (ch && !seenCh[ch]) { seenCh[ch] = true; allChannels.push(ch); }
+        });
+      }
     }
-  }
-  var $chVisit = document.getElementById('channelVisit');
-  if ($chVisit) {
-    var newVal = allChannels.length > 0 ? allChannels.length : '';
-    if ($chVisit.value !== newVal) $chVisit.value = newVal;
+    var $chVisit = document.getElementById('channelVisit');
+    if ($chVisit) {
+      var newVal = allChannels.length > 0 ? allChannels.length : '';
+      if ($chVisit.value !== newVal) $chVisit.value = newVal;
+    }
+    var $status = document.getElementById('debugChStatus');
+    if ($status) $status.textContent = '渠道:' + allChannels.length;
+  } catch(e) {
+    console.error('channelVisit calc error:', e);
+    var $status2 = document.getElementById('debugChStatus');
+    if ($status2) $status2.textContent = '错误:' + e.message;
   }
 }
 
