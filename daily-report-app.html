@@ -2609,6 +2609,32 @@ async function init() {
 
 document.addEventListener("DOMContentLoaded", init);
 </script>
-</body>
+<div id="diag-panel" style="position:fixed;bottom:10px;right:10px;z-index:99999;background:#fff;border:2px solid red;padding:12px;font-size:12px;max-width:400px;max-height:300px;overflow:auto;display:none">
+<div style="font-weight:bold;margin-bottom:6px;color:red">🔧 诊断面板 <button onclick="document.getElementById('diag-panel').style.display='none'">关闭</button></div>
+<pre id="diag-output"></pre>
+</div>
+<button onclick="runDiag()" style="position:fixed;bottom:10px;left:10px;z-index:99998;background:red;color:#fff;border:none;padding:6px 10px;cursor:pointer;font-size:12px">诊断</button>
+<script>
+function runDiag(){
+  var out = document.getElementById('diag-output');
+  var lines = [];
+  lines.push('generate_try_catch: ' + (typeof generate === 'function'));
+  lines.push('refreshCalcBar: ' + (typeof refreshCalcBar === 'function'));
+  lines.push('personData_len: ' + (typeof personData !== 'undefined' ? personData.length : 'undefined'));
+  lines.push('channelWork_values: ' + JSON.stringify(
+    typeof personData !== 'undefined' ? [0,1,2,3].map(function(i){ return personData[i] && personData[i].channelWork; }) : 'N/A'
+  ));
+  lines.push('p0_channelWork_dom: ' + (document.getElementById('p0_channelWork') ? document.getElementById('p0_channelWork').value : 'NOT FOUND'));
+  lines.push('channelVisit_dom: ' + (document.getElementById('channelVisit') ? document.getElementById('channelVisit').value : 'NOT FOUND'));
+  lines.push('result_exists: ' + !!document.getElementById('result'));
+  lines.push('generateBtn_exists: ' + !!document.getElementById('generateBtn'));
+  lines.push('script_size: ' + (document.querySelector('script') ? document.querySelector('script').textContent.length : 'N/A'));
+  try { refreshCalcBar(); lines.push('refreshCalcBar_OK'); } catch(e) { lines.push('refreshCalcBar_ERR: ' + e.message); }
+  try { generate(); lines.push('generate_OK'); } catch(e) { lines.push('generate_ERR: ' + e.message); }
+  lines.push('result_value_len: ' + (document.getElementById('result') ? document.getElementById('result').value.length : 'N/A'));
+  out.textContent = lines.join('\n');
+  document.getElementById('diag-panel').style.display = 'block';
+}
+</script></body>
 </html>
 
